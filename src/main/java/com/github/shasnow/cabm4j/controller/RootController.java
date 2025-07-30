@@ -1,8 +1,6 @@
 package com.github.shasnow.cabm4j.controller;
 
-import com.github.shasnow.cabm4j.entity.Scene;
 import com.github.shasnow.cabm4j.service.ImageService;
-import com.github.shasnow.cabm4j.service.SceneService;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +15,6 @@ public class RootController {
     private static final Logger logger = LoggerFactory.getLogger(RootController.class);
     @Resource
     ImageService imageService;
-    @Resource
-    SceneService sceneService;
 
     @GetMapping("/")
     public String index(Model model) {

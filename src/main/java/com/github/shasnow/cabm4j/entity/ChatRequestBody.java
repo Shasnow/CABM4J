@@ -35,6 +35,16 @@ public class ChatRequestBody implements Serializable {
         this.temperature = temperature;
         this.topK = topK;
     }
+
+    public ChatRequestBody(String model, List<Message> message, boolean stream, int maxTokens, float temperature, int topK) {
+        this.model = model;
+        this.message = message;
+        this.stream = stream;
+        this.maxTokens = maxTokens;
+        this.temperature = temperature;
+        this.topK = topK;
+    }
+
     public Map<String, Object> toMap() {
         return Map.of(
                 "model", model,

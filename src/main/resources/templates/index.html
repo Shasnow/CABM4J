@@ -141,7 +141,6 @@
     </div>
     
 <!--     JavaScript -->
-<!--    <script src="/js/stream_processor.js"></script>-->
 <!--    <script src="/js/main.js"></script>-->
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -261,7 +260,7 @@
         } else if (role === 'assistant') {
             if (currentCharacter) {
                 characterName.textContent = currentCharacter.name;
-                characterName.style.color = currentCharacter.color;
+                characterName.style.color = currentCharacter.nameColor;
             } else {
                 characterName.textContent = 'AI';
                 characterName.style.color = '#ffeb3b';
