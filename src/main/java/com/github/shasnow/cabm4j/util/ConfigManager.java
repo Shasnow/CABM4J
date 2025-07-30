@@ -1,7 +1,5 @@
 package com.github.shasnow.cabm4j.util;
 
-import org.springframework.core.io.ClassPathResource;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -41,14 +39,12 @@ public class ConfigManager {
     );
     private static final String NEGATIVE_PROMPTS = "模糊, 扭曲, 变形, 低质量, 像素化, 低分辨率, 不完整";
     private static final Map<String, Object> APP_CONFIG = Map.of(
-            "debug", System.getProperty("DEBUG", "False").equalsIgnoreCase("true"),
+            "debug", System.getProperty("DEBUG", "false").equalsIgnoreCase("true"),
             "port", Integer.parseInt(System.getProperty("PORT", "5000")),
             "host", System.getProperty("HOST", "0.0.0.0"),  // 服务器监听地址，
-            "static_folder", "resources/static",
-            "template_folder", "resources/templates",
-            "image_cache_dir", "resources/static/images/cache",
+            "character_folder", "resources/characters",  // 角色配置文件夹
+            "image_cache_dir", "resources/images/cache",
             "max_history_length", 10,  // 最大对话历史长度（发送给AI的上下文长度）
-            "history_dir", "resources/data/history",  // 历史记录存储目录
             "show_scene_name", true,  // 是否在前端显示场景名称
             "auto_open_browser", System.getProperty("AUTO_OPEN_BROWSER", "True").equalsIgnoreCase("true")  // 是否自动打开浏览器（会自动使用本地IP地址）
     );

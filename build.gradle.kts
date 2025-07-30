@@ -29,6 +29,7 @@ dependencies {
     implementation("com.alibaba.fastjson2:fastjson2:2.0.57")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.tomlj:tomlj:1.1.1")
     testImplementation("io.projectreactor:reactor-test")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

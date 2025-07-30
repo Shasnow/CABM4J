@@ -245,14 +245,36 @@
     let currentCharacter = null;
 
     function updateCurrentMessage(role, content) {
+        removeMarkdown(content);
         typeWriter(currentMessage,content,role)
+    }
+    function removeMarkdown(markdown) {
+        markdown = markdown.replace(/~~~.*?~~~/gs, '');
+        // 移除行内代码（`text`）
+        markdown = markdown.replace(/`([^`]+)`/g, '$1');
+        // 移除粗体（**text** 或 __text__）
+        markdown = markdown.replace(/\*\*(.*?)\*\*/g, '$1');
+        markdown = markdown.replace(/__(.*?)__/g, '$1');
+        // 移除斜体（*text* 或 _text_）
+        markdown = markdown.replace(/\*(.*?)\*/g, '$1');
+        markdown = markdown.replace(/_(.*?)_/g, '$1');
+        // 移除删除线（~~text~~）
+        markdown = markdown.replace(/~~(.*?)~~/g, '$1');
+
+        // 移除标题（# text）
+        markdown = markdown.replace(/^#+\s*(.*)$/gm, '$1');
+        // 移除多余的空行和换行
+        markdown = markdown.replace(/\n{2,}/g, '\n');
+        markdown = markdown.replace(/\n/g, ' ');
+        // 移除多余的空格
+        markdown = markdown.replace(/\s+/g, ' ').trim();
+        return markdown;
     }
 
     // 打字效果函数
     async function typeWriter(element, text, role) {
         // 先清空元素
         element.textContent = '';
-
         // 设置角色名称和颜色
         if (role === 'user') {
             characterName.textContent = '你';
@@ -269,18 +291,14 @@
             characterName.textContent = '系统';
             characterName.style.color = '#4caf50';
         }
-
         // 处理文本（移除【】中的内容）
         const processedText = text.replace(/【[^】]*】/g, '');
-
         // 逐个字符输出
         for (let i = 0; i < processedText.length; i++) {
             element.textContent += processedText[i];
-
             // 计算延迟时间
             let delay;
             const char = processedText[i];
-
             // 标点符号停顿更长时间
             if (/[。！？；，、.]/.test(char)) {
                 delay = 300 + Math.random() * 200; // 300-500ms
@@ -289,12 +307,10 @@
             else {
                 delay = 30 + Math.random() * 50; // 30-80ms
             }
-
             // 如果是空格，减少停顿
             if (char === ' ') {
                 delay = Math.max(10, delay / 2);
             }
-
             await new Promise(resolve => setTimeout(resolve, delay));
         }
     }
@@ -343,6 +359,7 @@
     const messageInput = document.getElementById('messageInput');
     const clickToContinueButton = document.getElementById('clickToContinue');
     let messageLine = [];
+    let pointer = 0;
     async function sendMessage() {
         // 获取消息内容
         let message = messageInput.value.trim();
@@ -369,14 +386,16 @@
         eventSource.onmessage = (event) => {
             if (event.data==="[DONE]"){
                 eventSource.close();
+                messageLine.push(sentence); // 添加最后一行消息
                 console.log(messageLine)
                 enableUserInput()
                 return;
             }
             let string= JSON.parse(event.data)["choices"][0]["delta"]["content"];
+            console.log(string)
             for (let i = 0; i < string.length; i++) {
                 sentence += string[i];
-                if (string[i] === '。' || string[i] === '！' || string[i] === '？' || string[i] === '；' || string[i] === '，' || string[i] === '、') {
+                if (string[i] === '。' || string[i] === '！' || string[i] === '？' || string[i] === '；') {
                     // 如果是标点符号，添加到消息行
                     messageLine.push(sentence);
                     sentence = '';
@@ -384,8 +403,8 @@
                 if (messageLine.length > 0) {
                     if (!firstOut) {
                         firstOut = true;
-                        updateCurrentMessage('assistant', messageLine[0]); // 显示第一行消息
-                        addToHistory('assistant', messageLine.shift(), currentCharacter ? currentCharacter.name : 'AI'); // 添加到历史记录
+                        updateCurrentMessage('assistant', messageLine[pointer]); // 显示第一行消息
+                        addToHistory('assistant', messageLine[pointer++], currentCharacter ? currentCharacter.name : 'AI'); // 添加到历史记录
                         clickToContinueButton.style.display = 'block'; // 显示点击继续提示
                     }
                 }
@@ -463,12 +482,14 @@
 
     function clickToContinue() {
         // 如果当前消息行不为空，继续输出下一行
-        if (messageLine.length > 0) {
-            const nextMessage = messageLine.shift();
+        if (pointer< messageLine.length) {
+            const nextMessage = messageLine[pointer++];
             updateCurrentMessage('assistant', nextMessage);
             // 添加到历史记录
             addToHistory('assistant', nextMessage, currentCharacter ? currentCharacter.name : 'AI');
         } else {
+            messageLine=[];
+            pointer = 0;
             clickToContinueButton.style.display = 'none';
         }
     }

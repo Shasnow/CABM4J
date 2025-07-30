@@ -24,10 +24,8 @@ public class ConfigService {
 
     private void createEssentialDirectories() {
         try {
+            Files.createDirectories(Path.of(ConfigManager.getAppConfig().get("character_folder").toString()));
             Files.createDirectories(Path.of(ConfigManager.getAppConfig().get("image_cache_dir").toString()));
-            Files.createDirectories(Path.of(ConfigManager.getAppConfig().get("static_folder").toString()));
-            Files.createDirectories(Path.of(ConfigManager.getAppConfig().get("template_folder").toString()));
-            Files.createDirectories(Path.of(ConfigManager.getAppConfig().get("history_dir").toString()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
