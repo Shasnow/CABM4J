@@ -1,18 +1,20 @@
 package com.github.shasnow.cabm4j.util;
 
+import org.springframework.core.io.ClassPathResource;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 public class ConfigManager {
-    private static final Map<String, ?> CHAT_CONFIG = Map.of(
+    private static final Map<String, Object> CHAT_CONFIG = Map.of(
             "model", System.getProperty("CHAT_MODEL", "deepseek-ai/DeepSeek-V3"),
             "max_tokens", 4096,   // 最大生成令牌数
             "top_k", 5,           // Top-K采样
             "temperature", 1.0,   // 温度参数，控制创造性
             "stream", true      // 默认使用流式输出
     );
-    private static final Map<String, ?> STREAM_CONFIG = Map.of(
+    private static final Map<String, Object> STREAM_CONFIG = Map.of(
             "enable_streaming", true
     );
     private static final Map<String, ?> MEMORY_CONFIG = Map.of(
@@ -27,7 +29,7 @@ public class ConfigManager {
             "inference_steps", 20,      // 推理步数
             "guidance_scale", 7.5            // 引导比例
     );
-    private static final Map<String, ?> SYSTEM_PROMPTS = Map.of(
+    private static final Map<String, String> SYSTEM_PROMPTS = Map.of(
             "default", "你需要用一段话（1到5句话）回复用户，禁止换行，禁止使用markdown。每**句**话的开头需要用【】加上当前的心情，且必须是其中之一，**只写序号**：1.平静 2.兴奋 3.愤怒 4.失落 "
     );
     private static final List<String> IMAGE_PROMPTS = List.of(
@@ -42,20 +44,20 @@ public class ConfigManager {
             "debug", System.getProperty("DEBUG", "False").equalsIgnoreCase("true"),
             "port", Integer.parseInt(System.getProperty("PORT", "5000")),
             "host", System.getProperty("HOST", "0.0.0.0"),  // 服务器监听地址，
-            "static_folder", "static",
-            "template_folder", "templates",
-            "image_cache_dir", "static/images/cache",
+            "static_folder", "resources/static",
+            "template_folder", "resources/templates",
+            "image_cache_dir", "resources/static/images/cache",
             "max_history_length", 10,  // 最大对话历史长度（发送给AI的上下文长度）
-            "history_dir", "data/history",  // 历史记录存储目录
+            "history_dir", "resources/data/history",  // 历史记录存储目录
             "show_scene_name", true,  // 是否在前端显示场景名称
             "auto_open_browser", System.getProperty("AUTO_OPEN_BROWSER", "True").equalsIgnoreCase("true")  // 是否自动打开浏览器（会自动使用本地IP地址）
     );
 
-    public static Map<String, ?> getChatConfig() {
+    public static Map<String, Object> getChatConfig() {
         return CHAT_CONFIG;
     }
 
-    public static Map<String, ?> getStreamConfig() {
+    public static Map<String, Object> getStreamConfig() {
         return STREAM_CONFIG;
     }
 
@@ -67,7 +69,7 @@ public class ConfigManager {
         return IMAGE_CONFIG;
     }
 
-    public static Map<String, ?> getSystemPrompts() {
+    public static Map<String, String> getSystemPrompts() {
         return SYSTEM_PROMPTS;
     }
 
@@ -86,5 +88,9 @@ public class ConfigManager {
     public static String getRandomImagePrompt() {
         Random random = new Random();
         return IMAGE_PROMPTS.get(random.nextInt(IMAGE_PROMPTS.size()));
+    }
+
+    public static String getSystemPrompt(String key) {
+        return SYSTEM_PROMPTS.get(key);
     }
 }

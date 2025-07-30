@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CABM - Code Afflatus & Beyond Matter</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/continue-prompt.css">
 </head>
@@ -17,13 +18,14 @@
             
             <!-- 标题 -->
             <header class="home-header">
-                <h1>CABM</h1>
+                <h1>CABM - Java</h1>
                 <p>Code Afflatus & Beyond Matter</p>
+                <p th:text="${java}"></p>
             </header>
             
             <!-- 主页按钮 -->
             <div class="home-buttons">
-                <button id="startButton" class="btn primary-btn">开始</button>
+                <button id="startButton" class="btn primary-btn" onclick="showChatPage()">开始</button>
                 <button id="exitButton" class="btn secondary-btn">退出</button>
             </div>
         </div>
@@ -32,49 +34,47 @@
         <div id="chatPage" class="page">
             <!-- 背景图片 (仅在对话页面显示) -->
             <div class="background-container">
-                {% if background_url %}
-                <div class="background-image" style="background-image: url('{{ background_url }}');"></div>
-                {% else %}
-                <div class="background-image default-background"></div>
-                {% endif %}
+                <div class="background-image" th:if="${!background.isEmpty()}" th:style="'background-image:url(\''+${background}+'\')'"></div>
+                <div class="background-image default-background " th:if="${background.isEmpty()}"></div>
                 <div class="background-overlay"></div>
             </div>
             
             <!-- 标题栏 -->
             <div class="chat-header">
-                <button id="backButton" class="btn back-btn">返回</button>
+                <button id="backButton" class="btn back-btn" onclick="confirmBackToHome()">返回</button>
                 <h2>CABM</h2>
             </div>
             
             <!-- 角色区域 - 居中显示 -->
             <div class="character-container">
                 <div class="character-image">
-                    <img src="/static/images/default.svg" alt="AI角色" id="characterImage">
+                    <img src="/images/default.svg" alt="AI角色" id="characterImage">
                 </div>
             </div>
             
             <!-- 用户输入区域 - 右上角 -->
             <div class="user-input-container">
+                <label for="messageInput"></label>
                 <textarea id="messageInput" placeholder="输入消息..." class="chat-input"></textarea>
-                <button id="sendButton" class="btn primary-btn">发送</button>
+                <button id="sendButton" class="btn primary-btn" onclick="sendMessage()">发送</button>
             </div>
             
             <!-- 对话区域 - 底部窄条 -->
             <div class="dialog-container">
                 <div class="dialog-box" id="dialogBox">
                     <!-- 当前消息 -->
-                    <div class="character-name" id="characterName">系统</div>
-                    <div class="dialog-content" id="currentMessage">欢迎使用CABM！我是您的AI助手，请输入消息开始对话。</div>
+                    <div class="character-name" id="characterName" th:text="${characterName}"></div>
+                    <div class="dialog-content" id="currentMessage" th:text="${currentMessage}"></div>
                     
                     <!-- 点击继续提示 - 移动到对话框内部 -->
-                    <div class="continue-prompt" id="clickToContinue">▽</div>
+                    <div class="continue-prompt" id="clickToContinue" onclick="clickToContinue()">▽</div>
                 </div>
                 
                 <!-- 控制按钮 -->
                 <div class="control-buttons">
                     <!-- <button id="clearButton" class="btn secondary-btn">清空对话</button> -->
-                    <button id="backgroundButton" class="btn secondary-btn">更换背景</button>
-                    <button id="historyButton" class="btn secondary-btn">历史</button>
+                    <button id="backgroundButton" class="btn secondary-btn" onclick="changeBackground()">更换背景</button>
+                    <button id="historyButton" class="btn secondary-btn" onclick="toggleHistory()">历史</button>
                     <button id="characterButton" class="btn secondary-btn">角色</button>
                     <button id="continueButton" class="btn secondary-btn">继续</button>
                     <button id="skipButton" class="btn secondary-btn">跳过</button>
@@ -87,7 +87,7 @@
             <div class="history-content">
                 <div class="history-header">
                     <h3>对话历史</h3>
-                    <button id="closeHistoryButton" class="btn close-btn">&times;</button>
+                    <button id="closeHistoryButton" class="btn close-btn" onclick="toggleHistory()">&times;</button>
                 </div>
                 <div class="history-messages" id="historyMessages">
                     <!-- 历史消息将通过JavaScript动态添加 -->
@@ -140,8 +140,339 @@
         </div>
     </div>
     
-    <!-- JavaScript -->
-    <script src="/js/stream_processor.js"></script>
-    <script src="/js/main.js"></script>
+<!--     JavaScript -->
+<!--    <script src="/js/stream_processor.js"></script>-->
+<!--    <script src="/js/main.js"></script>-->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCharacters()
+    })
+    function showHomePage() {
+        homePage.classList.add('active');
+        chatPage.classList.remove('active');
+    }
+    function showChatPage() {
+        homePage.classList.remove('active');
+        chatPage.classList.add('active');
+    }
+    let messageHistory = [];
+    function confirmBackToHome() {
+        // 如果有未完成的对话，显示确认对话框
+        if (messageHistory.length > 0) {
+            showConfirmModal('确定要返回吗？', () => {
+                // 清空对话历史
+                // messageHistory = [];
+                // historyMessages.innerHTML = '';
+                // 返回主页
+                showHomePage();
+            });
+
+        } else {
+            // 直接返回主页
+            showHomePage();
+        }
+    }
+
+    let isProcessing = false;
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const errorMessage = document.getElementById('errorMessage');
+    const errorContainer = document.getElementById('errorContainer');
+    async function changeBackground() {
+        // 检查是否正在处理请求
+        if (isProcessing) {
+            showError('正在处理请求，请稍候');
+            return;
+        }
+        // 显示加载指示器
+        showLoading();
+        try {
+            // 发送API请求
+            let result
+            await $.post('/api/change-background',function (data) {
+                result = data;
+            })
+            if (result['status'] === 'success') {
+                updateBackground(result['background'])
+                updateCurrentMessage('system', '背景已更换');
+            }
+            // 更新背景图片
+        } catch (error) {
+            console.error('更换背景失败:', error);
+            showError(`更换背景失败: ${error.message}`);
+        } finally {
+            // 隐藏加载指示器
+            hideLoading();
+        }
+    }
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorContainer.style.display = 'block';
+    }
+    function showLoading() {
+        isProcessing = true;
+        loadingIndicator.style.display = 'flex';
+    }
+    function hideLoading() {
+        isProcessing = false;
+        loadingIndicator.style.display = 'none';
+    }
+    function updateBackground(url) {
+        // 获取背景元素
+        const backgroundElements = document.getElementsByClassName('background-image');
+        if (backgroundElements.length > 0) {
+            const backgroundElement = backgroundElements[0];
+            // 创建新背景元素
+            const newBackground = document.createElement('div');
+            newBackground.className = 'background-image';
+            newBackground.style.backgroundImage = `url('${url}')`;
+            newBackground.style.opacity = '0';
+            // 添加新背景
+            backgroundElement.parentNode.appendChild(newBackground);
+            // 淡入新背景
+            setTimeout(() => {
+                newBackground.style.opacity = '1';
+                // 淡出旧背景
+                backgroundElement.style.opacity = '0';
+                // 移除旧背景
+                setTimeout(() => {
+                    backgroundElement.remove();
+                }, 1000);
+            }, 10);
+        }
+    }
+
+    const characterName = document.getElementById('characterName');
+    const currentMessage = document.getElementById('currentMessage');
+    let currentCharacter = null;
+
+    function updateCurrentMessage(role, content) {
+        typeWriter(currentMessage,content,role)
+    }
+
+    // 打字效果函数
+    async function typeWriter(element, text, role) {
+        // 先清空元素
+        element.textContent = '';
+
+        // 设置角色名称和颜色
+        if (role === 'user') {
+            characterName.textContent = '你';
+            characterName.style.color = '#90caf9';
+        } else if (role === 'assistant') {
+            if (currentCharacter) {
+                characterName.textContent = currentCharacter.name;
+                characterName.style.color = currentCharacter.color;
+            } else {
+                characterName.textContent = 'AI';
+                characterName.style.color = '#ffeb3b';
+            }
+        } else if (role === 'system') {
+            characterName.textContent = '系统';
+            characterName.style.color = '#4caf50';
+        }
+
+        // 处理文本（移除【】中的内容）
+        const processedText = text.replace(/【[^】]*】/g, '');
+
+        // 逐个字符输出
+        for (let i = 0; i < processedText.length; i++) {
+            element.textContent += processedText[i];
+
+            // 计算延迟时间
+            let delay;
+            const char = processedText[i];
+
+            // 标点符号停顿更长时间
+            if (/[。！？；，、.]/.test(char)) {
+                delay = 300 + Math.random() * 200; // 300-500ms
+            }
+            // 其他字符随机停顿
+            else {
+                delay = 30 + Math.random() * 50; // 30-80ms
+            }
+
+            // 如果是空格，减少停顿
+            if (char === ' ') {
+                delay = Math.max(10, delay / 2);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+    let availableCharacters = [];
+    async function loadCharacters() {
+        try {
+            // 显示加载指示器
+            showLoading();
+            // 解析响应
+            await $.get("/api/characters",function (result) {
+                availableCharacters = result;
+            });
+            console.log(availableCharacters);
+            // 更新角色数据
+            await $.get("api/current-character",function (result) {
+                currentCharacter = result;
+            })
+            console.log(currentCharacter);
+            // 更新角色图片
+            updateCharacterImage();
+            // 更新当前消息
+            if (currentCharacter && currentCharacter['welcomeMessage']) {
+                updateCurrentMessage('assistant', currentCharacter['welcomeMessage']);
+            } else {
+                updateCurrentMessage('assistant', '欢迎使用CABM！我是您的AI助手，请输入消息开始对话。');
+            }
+        } catch (error) {
+            console.error('加载角色数据失败:', error);
+            showError(`加载角色数据失败: ${error.message}`);
+            // 设置默认消息
+            updateCurrentMessage('assistant', '欢迎使用CABM！我是您的AI助手，请输入消息开始对话。');
+        } finally {
+            // 隐藏加载指示器
+            hideLoading();
+        }
+    }
+    function updateCharacterImage() {
+        // 获取角色图片元素
+        const characterImage = document.getElementById('characterImage');
+        // 如果有当前角色，更新图片
+        if (currentCharacter && characterImage) {
+            characterImage.src = currentCharacter['image'];
+        }
+    }
+    const sendButton = document.getElementById('sendButton');
+    const messageInput = document.getElementById('messageInput');
+    const clickToContinueButton = document.getElementById('clickToContinue');
+    let messageLine = [];
+    async function sendMessage() {
+        // 获取消息内容
+        let message = messageInput.value.trim();
+        // 检查消息是否为空
+        if (!message) {
+            showError('请输入消息');
+            return;
+        }
+        // 检查是否正在处理请求
+        if (isProcessing) {
+            showError('正在处理上一条消息，请稍候');
+            return;
+        }
+        updateCurrentMessage('user', message);
+        // 添加用户消息到历史记录
+        addToHistory('user', message);
+        // 清空输入框
+        messageInput.value = '';
+        // 禁用用户输入
+        disableUserInput();
+        let sentence="";
+        let firstOut=false
+        const eventSource = new EventSource(`/api/chat/stream?message=${encodeURIComponent(message)}`);
+        eventSource.onmessage = (event) => {
+            if (event.data==="[DONE]"){
+                eventSource.close();
+                console.log(messageLine)
+                enableUserInput()
+                return;
+            }
+            let string= JSON.parse(event.data)["choices"][0]["delta"]["content"];
+            for (let i = 0; i < string.length; i++) {
+                sentence += string[i];
+                if (string[i] === '。' || string[i] === '！' || string[i] === '？' || string[i] === '；' || string[i] === '，' || string[i] === '、') {
+                    // 如果是标点符号，添加到消息行
+                    messageLine.push(sentence);
+                    sentence = '';
+                }
+                if (messageLine.length > 0) {
+                    if (!firstOut) {
+                        firstOut = true;
+                        updateCurrentMessage('assistant', messageLine[0]); // 显示第一行消息
+                        addToHistory('assistant', messageLine.shift(), currentCharacter ? currentCharacter.name : 'AI'); // 添加到历史记录
+                        clickToContinueButton.style.display = 'block'; // 显示点击继续提示
+                    }
+                }
+            }
+        };
+
+        eventSource.onerror = (error) => {
+            console.error('SSE error:', error);
+            eventSource.close();
+        };
+    }
+    // 禁用用户输入
+    function disableUserInput() {
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        messageInput.placeholder = "AI正在回复中...";
+    }
+    // 启用用户输入
+    function enableUserInput() {
+        messageInput.disabled = false;
+        sendButton.disabled = false;
+        messageInput.placeholder = "输入消息...";
+    }
+
+    // 添加消息到历史记录
+    const historyMessages = document.getElementById('historyMessages');
+    function addToHistory(role, content, customName = null) {
+        // 过滤内容中的【】标记
+        const filteredContent = content.replace(/【[^】]*】/g, '');
+        // 添加到内存中的历史记录
+        messageHistory.push({
+            role: role === 'assistant_continue' ? 'assistant' : role,
+            content: filteredContent
+        });
+        // 添加到历史记录面板
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `history-message history-${role}`;
+        const roleSpan = document.createElement('div');
+        roleSpan.className = 'history-role';
+        // 使用当前角色名称或自定义名称
+        let roleName = '';
+        if (role === 'user') {
+            roleName = '你';
+            roleSpan.textContent = roleName;
+        } else if (role === 'assistant') {
+            roleName = customName || (currentCharacter ? currentCharacter.name : 'AI');
+            roleSpan.textContent = roleName;
+        } else {
+            roleName = '系统';
+            roleSpan.textContent = roleName;
+        }
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'history-content';
+        // 为每个段落添加角色名称前缀
+        if (role === 'assistant') {
+            contentDiv.textContent = filteredContent;
+        } else {
+            contentDiv.textContent = filteredContent;
+        }
+        messageDiv.appendChild(roleSpan);
+        messageDiv.appendChild(contentDiv);
+        historyMessages.appendChild(messageDiv);
+    }
+
+    const historyModal = document.getElementById('historyModal');
+    function toggleHistory() {
+        if (historyModal.style.display === 'flex') {
+            historyModal.style.display = 'none';
+        } else {
+            historyModal.style.display = 'flex';
+            // 滚动到底部
+            historyMessages.scrollTop = historyMessages.scrollHeight;
+        }
+    }
+
+    function clickToContinue() {
+        // 如果当前消息行不为空，继续输出下一行
+        if (messageLine.length > 0) {
+            const nextMessage = messageLine.shift();
+            updateCurrentMessage('assistant', nextMessage);
+            // 添加到历史记录
+            addToHistory('assistant', nextMessage, currentCharacter ? currentCharacter.name : 'AI');
+        } else {
+            clickToContinueButton.style.display = 'none';
+        }
+    }
+</script>
 </body>
 </html>

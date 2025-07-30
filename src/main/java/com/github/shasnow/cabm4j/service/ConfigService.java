@@ -1,8 +1,8 @@
 package com.github.shasnow.cabm4j.service;
 
-import com.github.shasnow.cabm4j.character.Characters;
 import com.github.shasnow.cabm4j.util.ConfigManager;
 import com.github.shasnow.cabm4j.util.PropertiesManager;
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -14,7 +14,8 @@ import java.util.Map;
 public class ConfigService {
     private final boolean initialized = false;
     private final boolean configLoaded = false;
-    private String currentCharacterID = null;
+    @Getter
+    private String currentCharacterId = null;
 
     public ConfigService() {
         PropertiesManager.loadProperties();
@@ -32,11 +33,6 @@ public class ConfigService {
         }
     }
 
-    public Map<String,Object> getCharacterConfig(String characterID) {
-        Map<String,Object> characterConfig = Characters.getCharacterConfig(characterID);
-        currentCharacterID= characterConfig.get("id").toString();
-        return characterConfig;
-    }
     public Map<String,Object> getAppConfig() {
         return ConfigManager.getAppConfig();
     }
@@ -59,5 +55,21 @@ public class ConfigService {
 
     public String getImageAPIKey(){
         return System.getProperty("IMAGE_API_KEY");
+    }
+
+    public String getChatApiUrl() {
+        return System.getProperty("CHAT_API_URL");
+    }
+
+    public String getChatApiKey() {
+        return System.getProperty("CHAT_API_KEY");
+    }
+
+    public Map<String, Object> getChatConfig() {
+        return ConfigManager.getChatConfig();
+    }
+
+    public Map<String, Object> getStreamConfig() {
+        return ConfigManager.getStreamConfig();
     }
 }

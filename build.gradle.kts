@@ -28,6 +28,8 @@ dependencies {
     implementation("org.apache.httpcomponents.client5:httpclient5:5.5")
     implementation("com.alibaba.fastjson2:fastjson2:2.0.57")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    testImplementation("io.projectreactor:reactor-test")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")

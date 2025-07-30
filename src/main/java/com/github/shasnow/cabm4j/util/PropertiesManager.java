@@ -1,18 +1,21 @@
 package com.github.shasnow.cabm4j.util;
 
+import org.slf4j.Logger;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.Set;
 
 public class PropertiesManager {
-    public static boolean loadProperties(String filePath) {
+    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(PropertiesManager.class);
+    public static void loadProperties(String filePath) {
         Properties prop = new Properties();
         try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
             prop.load(fileInputStream);
         } catch (IOException e) {
             System.err.println("Error loading properties file: " + e.getMessage());
-            return false;
+            return;
         }
         Set<String> essentialKeys = Set.of(
                 "CHAT_API_URL",
@@ -28,13 +31,18 @@ public class PropertiesManager {
         for (String essentialKey : essentialKeys) {
             if (!prop.containsKey(essentialKey)) {
                 System.err.println("Missing essential property: " + essentialKey);
-                return false;
+                return;
             }
         }
+        Properties originalProp = System.getProperties();
+        prop.putAll(originalProp);
         System.setProperties(prop);
-        return true;
+        logger.info("Properties loaded successfully");
+        logger.info(System.getProperties().toString());
     }
-    public static boolean loadProperties(){
-        return loadProperties("user.properties");
+    public static void loadProperties(){
+        loadProperties("user.properties");
     }
+
+
 }
