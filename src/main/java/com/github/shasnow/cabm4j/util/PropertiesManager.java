@@ -9,6 +9,7 @@ import java.util.Set;
 
 public class PropertiesManager {
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(PropertiesManager.class);
+    private static Properties properties = new Properties();
     public static void loadProperties(String filePath) {
         Properties prop = new Properties();
         try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
@@ -30,19 +31,41 @@ public class PropertiesManager {
         );
         for (String essentialKey : essentialKeys) {
             if (!prop.containsKey(essentialKey)) {
-                System.err.println("Missing essential property: " + essentialKey);
+                logger.error("Missing essential property: {}", essentialKey);
                 return;
             }
         }
-        Properties originalProp = System.getProperties();
-        prop.putAll(originalProp);
-        System.setProperties(prop);
+        setProperties(prop);
         logger.info("Properties loaded successfully");
-        logger.info(System.getProperties().toString());
+        logger.info(
+                """
+                Java version: {}
+                Vendor: {}
+                Working directory: {}
+                OS name: {}
+                OS architecture: {}
+                """,
+                System.getProperty("java.version"),
+                System.getProperty("java.vendor"),
+                System.getProperty("user.dir"),
+                System.getProperty("os.name"),
+                System.getProperty("os.arch"));
+        logger.info("User properties:{}", properties.toString());
     }
     public static void loadProperties(){
         loadProperties("user.properties");
     }
-
+    public static void setProperties(Properties properties) {
+        PropertiesManager.properties = properties;
+    }
+    public static Properties getProperties() {
+        return PropertiesManager.properties;
+    }
+    public static String getProperty(String key) {
+        return properties.getProperty(key);
+    }
+    public static String getProperty(String key, String defaultValue) {
+        return properties.getProperty(key, defaultValue);
+    }
 
 }

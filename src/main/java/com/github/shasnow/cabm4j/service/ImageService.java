@@ -26,7 +26,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ImageService {
@@ -49,7 +48,7 @@ public class ImageService {
         String apiKey = configService.getImageAPIKey();
         Header[] headers = new Header[]{
                 new BasicHeader(HttpHeaders.AUTHORIZATION, "Bearer "+apiKey),
-                new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json")};;
+                new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json")};
         if (imageConfig==null){
             imageConfig = new ImageConfig(configService.getImageConfig(),configService.getRandomImagePrompt(),configService.getNegativePrompts());
         }

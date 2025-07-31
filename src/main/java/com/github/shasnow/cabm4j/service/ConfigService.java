@@ -48,19 +48,19 @@ public class ConfigService {
     }
 
     public String getImageAPIURL(){
-        return System.getProperty("IMAGE_API_URL");
+        return PropertiesManager.getProperty("IMAGE_API_URL");
     }
 
     public String getImageAPIKey(){
-        return System.getProperty("IMAGE_API_KEY");
+        return PropertiesManager.getProperty("IMAGE_API_KEY");
     }
 
     public String getChatApiUrl() {
-        return System.getProperty("CHAT_API_URL");
+        return PropertiesManager.getProperty("CHAT_API_URL");
     }
 
     public String getChatApiKey() {
-        return System.getProperty("CHAT_API_KEY");
+        return PropertiesManager.getProperty("CHAT_API_KEY");
     }
 
     public Map<String, Object> getChatConfig() {

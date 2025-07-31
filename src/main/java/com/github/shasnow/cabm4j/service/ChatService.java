@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.github.shasnow.cabm4j.entity.ChatRequestBody;
 import com.github.shasnow.cabm4j.entity.Message;
 import com.github.shasnow.cabm4j.util.APIUtil;
+import com.github.shasnow.cabm4j.util.PropertiesManager;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.slf4j.Logger;
@@ -32,7 +33,7 @@ public class ChatService {
         Message systemMessage = new Message("system", characterService.getCurrentCharacter().getPrompt());
         Message chatMessage = new Message("user", message);
         ChatRequestBody requestBody = new ChatRequestBody(
-                System.getProperty("CHAT_MODEL"),
+                PropertiesManager.getProperty("CHAT_MODEL"),
                 List.of(systemMessage, chatMessage),
                 true,
                 4096,
@@ -55,7 +56,7 @@ public class ChatService {
                 new BasicHeader("Authorization", "Bearer " + configService.getChatApiKey())
         };
         ChatRequestBody requestBody = new ChatRequestBody(
-                System.getProperty("CHAT_MODEL"),
+                PropertiesManager.getProperty("CHAT_MODEL"),
                 messageObj,
                 false,
                 4096,

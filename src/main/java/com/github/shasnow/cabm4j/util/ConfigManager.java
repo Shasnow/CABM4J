@@ -6,7 +6,7 @@ import java.util.Random;
 
 public class ConfigManager {
     private static final Map<String, Object> CHAT_CONFIG = Map.of(
-            "model", System.getProperty("CHAT_MODEL", "deepseek-ai/DeepSeek-V3"),
+            "model", PropertiesManager.getProperty("CHAT_MODEL", "deepseek-ai/DeepSeek-V3"),
             "max_tokens", 4096,   // 最大生成令牌数
             "top_k", 5,           // Top-K采样
             "temperature", 1.0,   // 温度参数，控制创造性
@@ -21,7 +21,7 @@ public class ConfigManager {
             "min_similarity", 0.3       // 最小相似度阈值
     );
     private static final Map<String, Object> IMAGE_CONFIG = Map.of(
-            "model", System.getProperty("IMAGE_MODEL", "Kwai-Kolors/Kolors"),  // 默认模型
+            "model", PropertiesManager.getProperty("IMAGE_MODEL", "Kwai-Kolors/Kolors"),  // 默认模型
             "image_size", "1024x1024",      // 默认图像尺寸
             "batch_size", 1,                // 默认生成数量
             "inference_steps", 20,      // 推理步数
@@ -39,14 +39,14 @@ public class ConfigManager {
     );
     private static final String NEGATIVE_PROMPTS = "模糊, 扭曲, 变形, 低质量, 像素化, 低分辨率, 不完整";
     private static final Map<String, Object> APP_CONFIG = Map.of(
-            "debug", System.getProperty("DEBUG", "false").equalsIgnoreCase("true"),
-            "port", Integer.parseInt(System.getProperty("PORT", "5000")),
-            "host", System.getProperty("HOST", "0.0.0.0"),  // 服务器监听地址，
+            "debug", PropertiesManager.getProperty("DEBUG", "false").equalsIgnoreCase("true"),
+            "port", Integer.parseInt(PropertiesManager.getProperty("PORT", "5000")),
+            "host", PropertiesManager.getProperty("HOST", "0.0.0.0"),  // 服务器监听地址，
             "character_folder", "resources/characters",  // 角色配置文件夹
             "image_cache_dir", "resources/images/cache",
             "max_history_length", 10,  // 最大对话历史长度（发送给AI的上下文长度）
             "show_scene_name", true,  // 是否在前端显示场景名称
-            "auto_open_browser", System.getProperty("AUTO_OPEN_BROWSER", "True").equalsIgnoreCase("true")  // 是否自动打开浏览器（会自动使用本地IP地址）
+            "auto_open_browser", PropertiesManager.getProperty("AUTO_OPEN_BROWSER", "True").equalsIgnoreCase("true")  // 是否自动打开浏览器（会自动使用本地IP地址）
     );
 
     public static Map<String, Object> getChatConfig() {
