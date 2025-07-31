@@ -428,7 +428,6 @@
         sendButton.disabled = false;
         messageInput.placeholder = "输入消息...";
     }
-
     // 添加消息到历史记录
     const historyMessages = document.getElementById('historyMessages');
     function addToHistory(role, content, customName = null) {
@@ -468,7 +467,6 @@
         messageDiv.appendChild(contentDiv);
         historyMessages.appendChild(messageDiv);
     }
-
     const historyModal = document.getElementById('historyModal');
     function toggleHistory() {
         if (historyModal.style.display === 'flex') {
@@ -479,7 +477,6 @@
             historyMessages.scrollTop = historyMessages.scrollHeight;
         }
     }
-
     function clickToContinue() {
         // 如果当前消息行不为空，继续输出下一行
         if (pointer< messageLine.length) {

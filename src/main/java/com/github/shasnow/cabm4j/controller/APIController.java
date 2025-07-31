@@ -41,16 +41,26 @@ public class APIController {
         logger.info("Chat stream request received with message: {}", message);
         return chatService.chatCompletionsStream(message);
     }
-
+    @GetMapping("/background")
+    @ResponseBody
+    public String getCurrentBackground() {
+        String background = imageService.getCurrentBackground();
+        if (background == null) {
+            Map<String, Object> result = imageService.generateBackground(null);
+            background = result.get("image_path").toString();
+        }
+        background = background.replace("\\", "/");
+        logger.info("Current background image: {}", background);
+        return background;
+    }
     @PostMapping("/change-background")
     @ResponseBody
-    public Map<String,String> changeBackground(Model model){
+    public String changeBackground(){
         Map<String,Object> result = imageService.generateBackground(null);
         String background = result.get("image_path").toString();
         background = background.replace("\\", "/");
         logger.info("Changed background image: {}", background);
-        model.addAttribute("background",background);
-        return Map.of("status", "success", "background", background);
+        return background;
     }
 
     @GetMapping("/character")
@@ -70,5 +80,11 @@ public class APIController {
     @ResponseBody
     public Character getCurrentCharacterId() {
         return characterService.getCurrentCharacter();
+    }
+
+    @GetMapping("/java-version")
+    @ResponseBody
+    public String javaVersion(){
+        return System.getProperty("java.version");
     }
 }
