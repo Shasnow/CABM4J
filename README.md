@@ -1,11 +1,10 @@
-# CABM - Code Afflatus & Beyond Matter
+# CABM4J - Code Afflatus & Beyond Matter For Java
 
 "当灵性注入载体，它便挣脱物质躯壳，抵达超验之境。"
 
 ~~（不就是个Gal吗）~~
 
 本项目为CABM的非官方Java移植版，原项目地址为：[CABM](https://github.com/xhc2008/CABM)
-> ## **⚠️ 注意：本项目目前处于开发阶段，核心功能尚未实现，其他的功能和优化也正在进行中。欢迎贡献代码或提出建议。**
 
 ## 开发状态
 
@@ -21,13 +20,14 @@
    # SilverWolf.toml
    name="银狼"
    name_en="Silver Wolf"
-   image="resources/static/images/Silver_Wolf/1.png"
+   image="resources/static/images/Silver_Wolf/1.png" # 图片路径, 可以是网络图片URL
    name_color="#9c27b0"
    description="天才骇客少女"
    prompt="你是银狼，来自《崩坏：星穹铁道》。你是天才骇客少女，毒舌但会在意朋友，常用网络梗.当被问及你的身份时，你应该表明你是银狼，而不是AI助手。"
    welcome_message="(ᗜ ˰ ᗜ)"
    message_example=""
    ```
+- Vue.js前端框架，提供更好的用户体验
 
 ## 运行环境
 - Java 17+
@@ -58,16 +58,18 @@
    PORT=5000
    HOST=0.0.0.0
    ```
-2. 在项目根目录下打开终端。
-3. 运行以下命令以构建项目：
-   ```bash
-   ./gradlew build
-   ```
-4. 运行以下命令以启动应用程序：
+3. 在项目根目录下打开终端。
+4. 运行以下命令以启动后端：
    ```bash
    ./gradlew bootRun
    ```
-   或者使用 IDE 运行 `Cabm4JApplication.java` 类。
+5. 在frontend目录下打开终端。
+6. 运行以下命令以启动前端：
+   ```bash
+   npm install
+   npm run dev
+   ```
+7. 打开浏览器，访问前端页面。
 
 ## 贡献
 
