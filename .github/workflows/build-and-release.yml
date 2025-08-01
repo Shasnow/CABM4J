@@ -1,0 +1,82 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Clean previous builds
+        run: |
+          if (Test-Path -Path ./frontend/dist) { Remove-Item -Path ./frontend/dist -Recurse -Force }
+          if (Test-Path -Path ./build) { Remove-Item -Path ./build -Recurse -Force }
+          if (Test-Path -Path ./src/main/resources/templates/index.html) { Remove-Item -Path ./src/main/resources/templates/index.html -Force }
+          if (Test-Path -Path ./src/main/resources/static) { Remove-Item -Path ./src/main/resources/static/* -Recurse -Force }
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Move frontend build files
+        run: |
+          # 创建目标目录（如果不存在）
+          New-Item -ItemType Directory -Force -Path src/main/resources/templates
+          New-Item -ItemType Directory -Force -Path src/main/resources/static
+
+          # 移动index.html到templates目录
+          Move-Item -Path frontend/dist/index.html -Destination src/main/resources/templates/
+
+          # 移动其他文件和目录到static目录
+          Get-ChildItem -Path frontend/dist/* -Exclude index.html | Move-Item -Destination src/main/resources/static/
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+
+      - name: Build with Gradle
+        run: gradlew.bat build
+
+      - name: Verify build artifacts
+        run: |
+          # 检查前端构建文件是否正确移动
+          if (-not (Test-Path -Path ./src/main/resources/templates/index.html)) { throw "index.html not found in templates directory" }
+          if (-not (Test-Path -Path ./src/main/resources/static/assets)) { throw "Static assets not found" }
+
+          # 检查Java构建产物
+          $jarFiles = Get-ChildItem -Path ./build/libs/*.jar
+          if ($jarFiles.Length -eq 0) { throw "No JAR files found in build/libs" }
+          Write-Output "Found JAR file: $($jarFiles[0].Name)"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/libs/*.jar
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
