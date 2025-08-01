@@ -1,6 +1,7 @@
 package com.github.shasnow.cabm4j.service;
 
 import com.github.shasnow.cabm4j.util.ConfigManager;
+import com.github.shasnow.cabm4j.util.DataGenerator;
 import com.github.shasnow.cabm4j.util.PropertiesManager;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
@@ -18,17 +19,8 @@ public class ConfigService {
     private String currentCharacterId = null;
 
     public ConfigService() {
+        DataGenerator.dataGen();
         PropertiesManager.loadProperties();
-        createEssentialDirectories();
-    }
-
-    private void createEssentialDirectories() {
-        try {
-            Files.createDirectories(Path.of(ConfigManager.getAppConfig().get("character_folder").toString()));
-            Files.createDirectories(Path.of(ConfigManager.getAppConfig().get("image_cache_dir").toString()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public Map<String,Object> getAppConfig() {

@@ -1,5 +1,7 @@
 <script setup>
 import HistoryModal from "@/components/HistoryModal.vue";
+import GalGameDialog from "@/components/GalGameDialog.vue";
+import CharacterSelector from "@/components/CharacterSelector.vue";
 </script>
 
 <template>
@@ -32,50 +34,27 @@ import HistoryModal from "@/components/HistoryModal.vue";
 
     <!-- 对话区域 -->
     <div class="dialog-container">
-      <div id="dialogBox" class="dialog-box">
-        <!-- 当前消息 -->
-        <div id="characterName" :style="{ color: characterColor }" class="character-name">{{ characterName }}</div>
-        <div id="currentMessage" class="dialog-content">{{ currentMessage }}</div>
-
-        <!-- 点击继续提示 -->
-        <div
-            v-if="showContinuePrompt"
-            id="clickToContinue"
-            class="continue-prompt"
-            @click="clickToContinue"
-        >▽
-        </div>
-      </div>
+      <GalGameDialog :dialogues="messageList" :character-colors="characterColor"></GalGameDialog>
 
 
       <!-- 控制按钮 -->
       <div class="control-buttons">
         <button id="backgroundButton" class="btn secondary-btn" @click="changeBackground">更换背景</button>
         <button id="historyButton" class="btn secondary-btn" @click="showHistoryModal=true">历史</button>
-        <button id="characterButton" class="btn secondary-btn" @click="showCharacterSelect">角色</button>
+        <button id="characterButton" class="btn secondary-btn" @click="showCharacterModal=true">角色</button>
         <button id="continueButton" class="btn secondary-btn" @click="continueDialog">继续</button>
         <button id="skipButton" class="btn secondary-btn" @click="skipDialog">跳过</button>
       </div>
     </div>
 
     <div class="user-input-container">
-      <el-input v-model="messageInput" placeholder="输入消息..." type="textarea"
+      <el-input v-model="messageInput" placeholder="输入消息..." type="textarea" v-loading="isReplying"
                 @keyup.enter.native="sendMessage"></el-input>
-      <button id="sendButton" class="btn primary-btn" @click="sendMessage">发送</button>
+      <el-button id="sendButton" class="btn primary-btn" @click="sendMessage">发送</el-button>
     </div>
 
     <HistoryModal v-if="showHistoryModal" :message-history="messageHistory" @close="showHistoryModal=false"/>
-    <!-- 其他可能的子组件 -->
-    <!--    <CharacterSelectModal-->
-    <!--        v-if="showCharacterModal"-->
-    <!--        @close="showCharacterModal = false"-->
-    <!--        @select="handleCharacterSelect"-->
-    <!--    />-->
-    <!--    <HistoryModal-->
-    <!--        v-if="showHistoryModal"-->
-    <!--        @close="showHistoryModal = false"-->
-    <!--        @select="loadHistory"-->
-    <!--    />-->
+    <CharacterSelector v-if="showCharacterModal" :characters="availableCharacters" @close="showCharacterModal=false" @character-selected="changeCharacter"/>
   </div>
 </template>
 
@@ -102,10 +81,10 @@ export default {
       currentMessage: this.initialMessage,
       messageList: [],
       messageInput: '',
-      showContinuePrompt: false,
       showCharacterModal: false,
       showHistoryModal: false,
       isLoading: false,
+      isReplying: false,
     };
   },
   methods: {
@@ -116,9 +95,40 @@ export default {
     },
     sendMessage() {
       if (this.messageInput.trim() === '') return;
-      this.updateCurrentMessage('user', this.messageInput);
-      this.addToHistory('user', this.messageInput);
+      if (this.isReplying) return; // 如果正在回复，则不允许发送新消息
+      this.isReplying = true;
+      const message = this.messageInput;
       this.messageInput = '';
+      this.updateCurrentMessage('user', message);
+      this.addToHistory('user', message);
+      let sentence="";
+      const eventSource = new EventSource(`/api/chat/stream?message=${encodeURIComponent(message)}`);
+      eventSource.onmessage = (event) => {
+        if (event.data === '[DONE]') {
+          eventSource.close();
+          this.updateCurrentMessage('assistant', sentence);
+          this.addToHistory('assistant', sentence);
+          this.isReplying = false;
+          return;
+        }
+        const string = JSON.parse(event.data)["choices"][0]["delta"]["content"];
+        console.log(string)
+        for (let i = 0; i < string.length; i++) {
+          sentence += string[i];
+          if (string[i] === '。' || string[i] === '！' || string[i] === '？' || string[i] === '；') {
+            // 如果是标点符号，添加到消息行
+            this.updateCurrentMessage('assistant', sentence);
+            this.addToHistory('assistant', sentence);
+            sentence = '';
+          }
+        }
+      };
+      eventSource.onerror = (error) => {
+        console.error('SSE error:', error);
+        ElMessage.error('消息发送失败，请尝试重启。');
+        this.isReplying = false;
+        eventSource.close();
+      };
     },
 
     async loadBackground() {
@@ -156,7 +166,7 @@ export default {
             this.characterName = this.currentCharacter.name;
             this.characterImage = this.currentCharacter.image;
             this.characterColor = this.currentCharacter.nameColor || '#409eff'; // 使用角色颜色或默认颜色
-            this.currentMessage = this.currentCharacter.welcomeMessage || '你好！我是你的AI助手，有什么可以帮你的吗？';
+            this.updateCurrentMessage('assistant', this.currentCharacter.welcomeMessage || '你好！我是你的AI助手，有什么可以帮你的吗？');
           }
         } else {
           ElMessage.error('获取当前角色失败，数据格式不正确');
@@ -166,6 +176,28 @@ export default {
         console.error('加载角色数据失败:', error);
         ElMessage.error('加载角色数据失败。');
       }
+    },
+    changeCharacter(index) {
+      if (index < 0 || index >= this.availableCharacters.length) {
+        console.error('无效的角色索引:', index);
+        return;
+      }
+      this.currentCharacter = this.availableCharacters[index];
+      this.characterName = this.currentCharacter.name;
+      this.characterImage = this.currentCharacter.image;
+      this.characterColor = this.currentCharacter.nameColor || '#409eff'; // 使用角色颜色或默认颜色
+      this.updateCurrentMessage('assistant', this.currentCharacter.welcomeMessage || '你好！我是你的AI助手，有什么可以帮你的吗？');
+      this.isReplying = true;
+      axios.post(`api/set-character?characterId=${this.currentCharacter.id}`).then(response => {
+        if (response.data) {
+          if (response.data==='success') {
+            ElMessage.success("切换成功");
+          }
+          else ElMessage.error("切换失败");
+        }
+      }).finally(()=>{
+        this.isReplying = false;
+      })
     },
     async changeBackground() {
       // 检查是否正在处理请求
@@ -203,7 +235,7 @@ export default {
         this.characterName = '系统';
         this.characterColor = '#00550d'; // 系统消息颜色
       }
-      this.currentMessage = message;
+      this.messageList.push({role:this.characterName, message});
     },
     addToHistory(role, message) {
       const timestamp = new Date().toLocaleTimeString();
@@ -310,37 +342,6 @@ export default {
   transform: translateX(-50%);
   width: 80%;
   max-width: 600px;
-}
-
-.dialog-box {
-  position: relative;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.character-name {
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #333;
-}
-
-.dialog-content {
-  line-height: 1.5;
-  color: #555;
-}
-
-.continue-prompt {
-  position: absolute;
-  right: 10px;
-  bottom: 5px;
-  cursor: pointer;
-  color: #666;
-  font-size: 12px;
-  animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {

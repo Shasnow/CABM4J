@@ -19,7 +19,7 @@ import java.util.Map;
 public class CharacterService {
     private final Logger logger = LoggerFactory.getLogger(CharacterService.class);
     private final Map<String, Character> characters = new HashMap<>();
-    private final String currentCharacterId = "SilverWolf"; // 默认角色ID
+    private String currentCharacterId = "SilverWolf"; // 默认角色ID
 
     public CharacterService() {
         // 初始化时可以加载默认角色
@@ -73,5 +73,16 @@ public class CharacterService {
 
     public Character getCurrentCharacter() {
         return getCharacterById(currentCharacterId);
+    }
+
+    public boolean setCurrentCharacterById(String characterId) {
+        if (characters.containsKey(characterId)) {
+            logger.info("Setting current character to: {}", characterId);
+            currentCharacterId= characterId;
+            return true;
+        } else {
+            logger.warn("Could not found a Character with id {}", characterId);
+            return false;
+        }
     }
 }

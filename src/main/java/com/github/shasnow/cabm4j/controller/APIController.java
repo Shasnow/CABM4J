@@ -25,14 +25,7 @@ public class APIController {
     CharacterService characterService;
     @Resource
     ChatService chatService;
-    @PostMapping("/chat")
-    @ResponseBody
-    public JSONObject chat(@RequestParam String message){
-        // 处理聊天消息
-        logger.info("Received message: {}", message);
-        // 在这里添加实际的流式聊天逻辑
-        return chatService.chatCompletions(message);
-    }
+
 
     @GetMapping(value = "/chat/stream",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @ResponseBody
@@ -79,6 +72,11 @@ public class APIController {
     @ResponseBody
     public Character getCurrentCharacterId() {
         return characterService.getCurrentCharacter();
+    }
+    @PostMapping("/set-character")
+    @ResponseBody
+    public String setCharacter(@RequestParam String characterId) {
+        return characterService.setCurrentCharacterById(characterId)? "success":"failed";
     }
 
     @GetMapping("/java-version")
