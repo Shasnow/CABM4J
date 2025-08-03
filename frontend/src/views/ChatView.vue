@@ -96,10 +96,10 @@ export default {
       }
     },
     sendMessage() {
-      if (this.messageInput.trim() === '') return;
+      const message = this.messageInput.trim();
+      if (message === '') return;
       if (this.isReplying) return; // 如果正在回复，则不允许发送新消息
       this.isReplying = true;
-      const message = this.messageInput;
       this.messageInput = '';
       this.updateCurrentMessage('user', message);
       this.addToHistory('user', message);
@@ -116,7 +116,7 @@ export default {
           this.isReplying = false;
           return;
         }
-        const string = JSON.parse(event.data)["choices"][0]["delta"]["content"];
+        const string = JSON.parse(event.data)["choices"][0]["delta"]["content"].trim();
         console.log(string)
         for (let i = 0; i < string.length; i++) {
           sentence += string[i];

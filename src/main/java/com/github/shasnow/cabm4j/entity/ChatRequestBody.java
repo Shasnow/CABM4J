@@ -13,7 +13,7 @@ public class ChatRequestBody implements Serializable {
     @Serial
     private static final long serialVersionUID = 2L;
     private String model;
-    private List<Message> message;
+    private List<Message> messages;
     private boolean stream;
     private int maxTokens;
 //    private boolean enableThinking;
@@ -29,16 +29,16 @@ public class ChatRequestBody implements Serializable {
 
     public ChatRequestBody(String model, Message message, boolean stream, int maxTokens, float temperature, int topK) {
         this.model = model;
-        this.message = Collections.singletonList(message);
+        this.messages = Collections.singletonList(message);
         this.stream = stream;
         this.maxTokens = maxTokens;
         this.temperature = temperature;
         this.topK = topK;
     }
 
-    public ChatRequestBody(String model, List<Message> message, boolean stream, int maxTokens, float temperature, int topK) {
+    public ChatRequestBody(String model, List<Message> messages, boolean stream, int maxTokens, float temperature, int topK) {
         this.model = model;
-        this.message = message;
+        this.messages = messages;
         this.stream = stream;
         this.maxTokens = maxTokens;
         this.temperature = temperature;
@@ -48,7 +48,7 @@ public class ChatRequestBody implements Serializable {
     public Map<String, Object> toMap() {
         return Map.of(
                 "model", model,
-                "messages", message,
+                "messages", messages,
                 "stream", stream,
                 "max_tokens", maxTokens,
                 "temperature", temperature,

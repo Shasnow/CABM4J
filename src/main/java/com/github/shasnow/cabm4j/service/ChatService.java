@@ -39,6 +39,7 @@ public class ChatService {
     public Flux<String> chatCompletionsStream(String message) {
         // 1. 准备消息
         Message systemMessage = new Message("system", characterService.getCurrentCharacter().getPrompt());
+        systemMessage.addContent("以下是与用户的近10次对话记录: "+conversationService.getLatestConversationsMessagesString(10,characterService.getCurrentCharacterId()));
         Message chatMessage = new Message("user", message);
         int messageId = messageService.saveMessage(chatMessage); // 保存用户消息
 
@@ -85,7 +86,7 @@ public class ChatService {
                 })
                 .doOnComplete(() -> {
                     // 流结束时保存完整响应（异步非阻塞）
-                    String fullResponse = responseBuffer.get();
+                    String fullResponse = responseBuffer.get().replace("\n", ""); // 去除换行符
                     int responseMessageId=messageService.saveMessage(new Message("assistant", fullResponse));
                     conversationService.saveConversation(messageId,responseMessageId, characterService.getCurrentCharacterId());
                     logger.info("Conversation saved.");
@@ -96,7 +97,7 @@ public class ChatService {
                 })
                 .doOnCancel(() -> {
                     // 客户端取消订阅时更新状态
-                    logger.warn("Client cancelled the stream for message ID: {}", messageId);
+                    logger.warn("Client cancelled the stream for messages ID: {}", messageId);
                 });
     }
 

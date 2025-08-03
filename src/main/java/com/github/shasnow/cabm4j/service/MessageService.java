@@ -18,7 +18,7 @@ public class MessageService extends ServiceImpl<MessageMapper, Message> {
         if (this.save(message)) {
             return message.getId();  // 返回保存后的消息 ID
         }
-        logger.error("Failed to save message: {}", message);
+        logger.error("Failed to save messages: {}", message);
         return null;  // 保存失败时返回 null
     }
 }

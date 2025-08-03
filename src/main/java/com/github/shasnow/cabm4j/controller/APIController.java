@@ -30,7 +30,7 @@ public class APIController {
     @GetMapping(value = "/chat/stream",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @ResponseBody
     public Flux<String> chatStream(@RequestParam String message){
-        logger.info("Chat stream request received with message: {}", message);
+        logger.info("Chat stream request received with messages: {}", message);
         return chatService.chatCompletionsStream(message);
     }
     @GetMapping("/background")

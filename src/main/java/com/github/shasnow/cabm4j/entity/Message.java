@@ -26,4 +26,28 @@ public class Message implements Serializable {
         this.role = role;
         this.content = content;
     }
+
+    public void addContent(String additionalContent) {
+        if (this.content == null) {
+            this.content = additionalContent;
+        } else {
+            this.content += additionalContent;
+        }
+    }
+
+    /**
+     * 将消息转换为 JSON 字符串格式
+     * @return JSON 字符串, 格式为 {"role":"role_value","content":"content_value"}
+     */
+    public String toJSONString() {
+        return String.format("{\"role\":\"%s\",\"content\":\"%s\"}", role, content);
+    }
+
+    /**
+     * 将消息转换为简单字符串格式
+     * @return 简单字符串, 格式为 "role: content"
+     */
+    public String toSimpleString() {
+        return String.format("%s: %s", role, content);
+    }
 }
