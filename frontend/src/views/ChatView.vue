@@ -19,7 +19,7 @@ import CharacterSelector from "@/components/CharacterSelector.vue";
 
     <!-- 标题栏 -->
     <div class="chat-header">
-      <el-button type="primary" plain @click="confirmBackToHome" round>返回首页</el-button>
+      <el-button plain round type="primary" @click="confirmBackToHome">返回首页</el-button>
       <h2>&nbsp;CABM</h2>
     </div>
 
@@ -34,7 +34,7 @@ import CharacterSelector from "@/components/CharacterSelector.vue";
 
     <!-- 对话区域 -->
     <div class="dialog-container">
-      <GalGameDialog :dialogues="messageList" :character-colors="characterColor"></GalGameDialog>
+      <GalGameDialog :dialogues="messageList" :name-color="characterColor"></GalGameDialog>
 
 
       <!-- 控制按钮 -->
@@ -48,13 +48,14 @@ import CharacterSelector from "@/components/CharacterSelector.vue";
     </div>
 
     <div class="user-input-container">
-      <el-input v-model="messageInput" placeholder="输入消息..." type="textarea" v-loading="isReplying"
+      <el-input v-model="messageInput" v-loading="isReplying" placeholder="输入消息..." type="textarea"
                 @keyup.enter.native="sendMessage"></el-input>
       <el-button id="sendButton" class="btn primary-btn" @click="sendMessage">发送</el-button>
     </div>
 
     <HistoryModal v-if="showHistoryModal" :message-history="messageHistory" @close="showHistoryModal=false"/>
-    <CharacterSelector v-if="showCharacterModal" :characters="availableCharacters" @close="showCharacterModal=false" @character-selected="changeCharacter"/>
+    <CharacterSelector v-if="showCharacterModal" :characters="availableCharacters" @close="showCharacterModal=false"
+                       @character-selected="changeCharacter"/>
   </div>
 </template>
 
@@ -62,7 +63,8 @@ import CharacterSelector from "@/components/CharacterSelector.vue";
 import axios from "axios";
 import {ElLoading, ElMessage} from "element-plus";
 import {ref} from "vue";
-const messageHistory= ref([]);
+
+const messageHistory = ref([]);
 export default {
   name: 'ChatPage',
   props: {
@@ -101,13 +103,16 @@ export default {
       this.messageInput = '';
       this.updateCurrentMessage('user', message);
       this.addToHistory('user', message);
-      let sentence="";
+      let sentence = "";
       const eventSource = new EventSource(`/api/chat/stream?message=${encodeURIComponent(message)}`);
       eventSource.onmessage = (event) => {
         if (event.data === '[DONE]') {
           eventSource.close();
-          this.updateCurrentMessage('assistant', sentence);
-          this.addToHistory('assistant', sentence);
+          if (sentence !== '') {
+            // 如果有未完成的句子，添加到消息行
+            this.updateCurrentMessage('assistant', sentence);
+            this.addToHistory('assistant', sentence);
+          }
           this.isReplying = false;
           return;
         }
@@ -190,12 +195,11 @@ export default {
       this.isReplying = true;
       axios.post(`api/set-character?characterId=${this.currentCharacter.id}`).then(response => {
         if (response.data) {
-          if (response.data==='success') {
+          if (response.data === 'success') {
             ElMessage.success("切换成功");
-          }
-          else ElMessage.error("切换失败");
+          } else ElMessage.error("切换失败");
         }
-      }).finally(()=>{
+      }).finally(() => {
         this.isReplying = false;
       })
     },
@@ -225,21 +229,21 @@ export default {
       }
     },
     updateCurrentMessage(role, message) {
-      if (role==='user'){
+      if (role === 'user') {
         this.characterName = '你';
         this.characterColor = '#409eff';
-      } else if (role==='assistant') {
+      } else if (role === 'assistant') {
         this.characterName = this.currentCharacter.name || 'AI助手';
         this.characterColor = this.currentCharacter.nameColor || '#409eff'; // 使用角色颜色或默认颜色
-      } else if (role==='system') {
+      } else if (role === 'system') {
         this.characterName = '系统';
         this.characterColor = '#00550d'; // 系统消息颜色
       }
-      this.messageList.push({role:this.characterName, message});
+      this.messageList.push({role: this.characterName, message});
     },
     addToHistory(role, message) {
       const timestamp = new Date().toLocaleTimeString();
-      messageHistory.value.push({ role:this.characterName, message, timestamp });
+      messageHistory.value.push({role: this.characterName, message, timestamp});
     },
   },
   async created() {

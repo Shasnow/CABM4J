@@ -1,7 +1,7 @@
 <template>
   <div class="dialog-box" @click="handleClick">
     <!-- 角色名（从当前对话条目中获取） -->
-    <div v-if="currentDialogue.role" class="character-name" :style="{ color: characterColor }">
+    <div v-if="currentDialogue.role" class="character-name" :style="{ color: nameColor }">
       {{ currentDialogue.role }}
     </div>
 
@@ -25,14 +25,7 @@ export default {
     // 对话文本数组（每个元素包含role和message）
     dialogues: {
       type: Array,
-      required: true,
-      validator: (value) => {
-        return value.every(item =>
-            typeof item === 'object' &&
-            'role' in item &&
-            'message' in item
-        )
-      }
+      required: true
     },
     // 默认角色名颜色
     defaultCharacterColor: {
@@ -40,7 +33,7 @@ export default {
       default: '#fff'
     },
     // 角色颜色配置（可选，格式：{ "角色名": "#颜色值" }）
-    characterColors: {
+    nameColor: {
       type:String
     },
     // 初始显示延迟(ms)
@@ -61,11 +54,18 @@ export default {
   },
   data() {
     return {
-      currentDialogueIndex: 0, // 当前对话索引
-      displayedText: '',      // 已显示的文本
-      isTypingComplete: false, // 是否完成打字
-      typingInterval: null,   // 打字定时器
-      ctrlPressed: false      // Ctrl键是否按下
+      // 当前对话索引
+      currentDialogueIndex: 0,
+      // 已显示的文本
+      displayedText: '',
+      // 是否完成打字
+      isTypingComplete: false,
+      // 打字定时器
+      typingInterval: null,
+      // Ctrl键是否按下
+      ctrlPressed: false,
+      // 是否全部显示
+      allShown: false
     }
   },
   computed: {
@@ -77,14 +77,12 @@ export default {
     currentMessage() {
       return this.currentDialogue.message
     },
-    // 当前角色名颜色（优先使用角色特定颜色，否则使用默认颜色）
-    characterColor() {
-      return this.characterColors
-    },
     // 是否显示继续提示
     showContinuePrompt() {
-      console.log(this.currentDialogueIndex, this.dialogues.length, this.isTypingComplete)
       return this.currentDialogueIndex < this.dialogues.length - 1
+    },
+    dialoguesLength() {
+      return this.dialogues.length
     }
   },
   watch: {
@@ -93,6 +91,14 @@ export default {
       immediate: true,
       handler() {
         this.startTypingEffect()
+      }
+    },
+    dialoguesLength: {
+      immediate: true,
+      handler() {
+        if (this.allShown){
+          this.currentDialogueIndex++
+        }
       }
     }
   },
@@ -113,6 +119,7 @@ export default {
       this.clearTypingInterval()
       this.displayedText = ''
       this.isTypingComplete = false
+      this.allShown = false
 
       if (!this.currentMessage) {
         this.isTypingComplete = true
@@ -125,7 +132,7 @@ export default {
       }, this.initialDelay)
     },
 
-    // 类型下一个字符
+    // 输入下一个字符
     typeNextCharacter() {
       if (this.isTypingComplete) return
 
@@ -135,6 +142,9 @@ export default {
       // 如果已经打完所有字符
       if (currentLength >= fullText.length) {
         this.isTypingComplete = true
+        if (this.currentDialogueIndex >= this.dialogues.length - 1) {
+          this.allShown = true
+        }
         return
       }
 

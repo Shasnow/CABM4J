@@ -30,6 +30,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.tomlj:tomlj:1.1.1")
+    implementation("org.xerial:sqlite-jdbc")
+    implementation("com.baomidou:mybatis-plus-spring-boot3-starter:3.5.12")
     testImplementation("io.projectreactor:reactor-test")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

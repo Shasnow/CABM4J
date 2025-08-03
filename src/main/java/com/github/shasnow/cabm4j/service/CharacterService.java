@@ -2,6 +2,7 @@ package com.github.shasnow.cabm4j.service;
 
 import com.github.shasnow.cabm4j.entity.Character;
 import com.github.shasnow.cabm4j.util.ConfigManager;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,9 +18,10 @@ import java.util.Map;
 
 @Service
 public class CharacterService {
-    private final Logger logger = LoggerFactory.getLogger(CharacterService.class);
+    private static final Logger logger = LoggerFactory.getLogger(CharacterService.class);
     private final Map<String, Character> characters = new HashMap<>();
-    private String currentCharacterId = "SilverWolf"; // 默认角色ID
+    @Getter
+    private String currentCharacterId; // 默认角色ID
 
     public CharacterService() {
         // 初始化时可以加载默认角色
@@ -30,6 +32,7 @@ public class CharacterService {
             characters.put(character.getId(), character);
             logger.info("Loaded character: {}", character.getName());
         }
+        currentCharacterId= characters.keySet().stream().findFirst().orElse(null); // 设置第一个加载的角色为当前角色
     }
 
     public List<Path> scanTomlFiles(Path directoryPath) {

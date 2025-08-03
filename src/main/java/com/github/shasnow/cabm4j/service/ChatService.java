@@ -1,5 +1,7 @@
 package com.github.shasnow.cabm4j.service;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.github.shasnow.cabm4j.entity.ChatRequestBody;
 import com.github.shasnow.cabm4j.entity.Message;
@@ -14,24 +16,33 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 @Service
 public class ChatService {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
     private final ConfigService configService;
     private final WebClient webClient;
     private final CharacterService characterService;
+    private final MessageService messageService;
+    private final ConversationService conversationService;
 
-    public ChatService(ConfigService configService, CharacterService characterService) {
+    public ChatService(ConfigService configService, CharacterService characterService, MessageService messageService, ConversationService conversationService) {
         this.configService = configService;
         this.characterService = characterService;
+        this.messageService = messageService;
+        this.conversationService = conversationService;
         webClient = WebClient.create(configService.getChatApiUrl());
     }
 
     public Flux<String> chatCompletionsStream(String message) {
+        // 1. 准备消息
         Message systemMessage = new Message("system", characterService.getCurrentCharacter().getPrompt());
         Message chatMessage = new Message("user", message);
+        int messageId = messageService.saveMessage(chatMessage); // 保存用户消息
+
+        // 2. 构造请求体
         ChatRequestBody requestBody = new ChatRequestBody(
                 PropertiesManager.getProperty("CHAT_MODEL"),
                 List.of(systemMessage, chatMessage),
@@ -41,12 +52,52 @@ public class ChatService {
                 5
         );
         logger.info("Posting chat completion request: {}", requestBody.toMap());
+
+        // 3. 使用 AtomicReference 替代 StringBuilder（线程安全）
+        AtomicReference<String> responseBuffer = new AtomicReference<>("");
+
+        // 4. 发起 WebClient 请求
         return webClient.post()
                 .header("content-type", "application/json")
                 .header("Authorization", "Bearer " + configService.getChatApiKey())
                 .bodyValue(requestBody.toMap())
                 .retrieve()
-                .bodyToFlux(String.class);
+                .bodyToFlux(String.class)
+                .doOnNext(chunk -> {
+                    // 跳过 [DONE] 标记（如果是 OpenAI 兼容的流式响应）
+                    if ("[DONE]".equals(chunk)) {
+                        return;
+                    }
+                    // 解析 JSON 并提取 delta 内容
+                    try {
+                        JSONObject jsonChunk = JSON.parseObject(chunk);
+                        JSONArray choices = jsonChunk.getJSONArray("choices");
+                        if (choices != null && !choices.isEmpty()) {
+                            JSONObject delta = choices.getJSONObject(0).getJSONObject("delta");
+                            if (delta.containsKey("content")) {
+                                String content = delta.getString("content");
+                                responseBuffer.updateAndGet(prev -> prev + content);
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Failed to parse chunk: {}", chunk, e);
+                    }
+                })
+                .doOnComplete(() -> {
+                    // 流结束时保存完整响应（异步非阻塞）
+                    String fullResponse = responseBuffer.get();
+                    int responseMessageId=messageService.saveMessage(new Message("assistant", fullResponse));
+                    conversationService.saveConversation(messageId,responseMessageId, characterService.getCurrentCharacterId());
+                    logger.info("Conversation saved.");
+                })
+                .doOnError(err -> {
+                    // 记录错误并更新消息状态
+                    logger.error("Error in chat completion stream: ", err);
+                })
+                .doOnCancel(() -> {
+                    // 客户端取消订阅时更新状态
+                    logger.warn("Client cancelled the stream for message ID: {}", messageId);
+                });
     }
 
     public JSONObject chatCompletions(String message) {
