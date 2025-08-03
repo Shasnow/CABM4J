@@ -50,6 +50,9 @@ public class DataGenerator {
                 EMBEDDING_API_KEY=your_api_key_here
                 # Replace with your actual API key
                 EMBEDDING_MODEL=BAAI/bge-m3
+                
+                # Other configurations
+                auto-open-browser=true
                 """;
                 Files.writeString(userPropertiesPath, defaultContent);
                 logger.info("user.properties file created with default content.");

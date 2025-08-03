@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.shasnow"
-version = "0.1.0-SNAPSHOT"
+version = "0.1.2-SNAPSHOT"
 
 java {
     toolchain {
