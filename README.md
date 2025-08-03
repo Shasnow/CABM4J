@@ -15,7 +15,7 @@
 **Java版独特功能：**
 
 - 低代码配置:
-  - 只需编写toml文件，即可配置AI模型和参数
+  - 只需编写 toml 文件，即可配置AI模型和参数
    ```toml
    # SilverWolf.toml
    name="银狼"
@@ -27,7 +27,8 @@
    welcome_message="(ᗜ ˰ ᗜ)"
    message_example=""
    ```
-- Vue.js前端框架，提供更好的用户体验
+- Vue.js 前端框架，提供更好的用户体验。
+- SQLite 数据库支持，存储用户对话历史。无需额外配置，CABM4J会为你自动创建和管理数据库文件。
 
 ## 运行环境
 - Java 17+
@@ -53,7 +54,7 @@
    EMBEDDING_API_KEY=your-api-key-here
    EMBEDDING_MODEL=BAAI/bge-m3
    
-   # ????
+   # No necessary
    DEBUG=False
    PORT=5000
    HOST=0.0.0.0
