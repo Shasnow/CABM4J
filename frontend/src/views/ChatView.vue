@@ -19,7 +19,7 @@ import CharacterSelector from "@/components/CharacterSelector.vue";
 
     <!-- 标题栏 -->
     <div class="chat-header">
-      <el-button plain round type="primary" @click="confirmBackToHome">返回首页</el-button>
+      <el-button plain round type="primary" @click="confirmBackToHome" size="small">返回首页</el-button>
       <h2>&nbsp;CABM</h2>
     </div>
 
@@ -30,27 +30,32 @@ import CharacterSelector from "@/components/CharacterSelector.vue";
       </div>
     </div>
 
-    <!-- 用户输入区域 -->
-
     <!-- 对话区域 -->
     <div class="dialog-container">
       <GalGameDialog :dialogues="messageList" :name-color="characterColor"></GalGameDialog>
-
-
-      <!-- 控制按钮 -->
-      <div class="control-buttons">
-        <button id="backgroundButton" class="btn secondary-btn" @click="changeBackground">更换背景</button>
-        <button id="historyButton" class="btn secondary-btn" @click="showHistoryModal=true">历史</button>
-        <button id="characterButton" class="btn secondary-btn" @click="showCharacterModal=true">角色</button>
-        <button id="continueButton" class="btn secondary-btn" @click="continueDialog">继续</button>
-        <button id="skipButton" class="btn secondary-btn" @click="skipDialog">跳过</button>
-      </div>
     </div>
 
+    <!-- 用户输入区域 -->
     <div class="user-input-container">
-      <el-input v-model="messageInput" v-loading="isReplying" placeholder="输入消息..." type="textarea"
-                @keyup.enter.native="sendMessage"></el-input>
-      <el-button id="sendButton" class="btn primary-btn" @click="sendMessage">发送</el-button>
+      <el-input
+          v-model="messageInput"
+          v-loading="isReplying"
+          placeholder="输入消息..."
+          type="textarea"
+          :rows="2"
+          resize="none"
+          @keyup.enter.native="sendMessage"
+      ></el-input>
+      <el-button id="sendButton" class="btn primary-btn" @click="sendMessage" size="small">发送</el-button>
+    </div>
+
+    <!-- 控制按钮 - 在小屏幕上改为垂直布局 -->
+    <div class="control-buttons" :class="{ 'vertical-layout': isMobile }">
+      <button id="backgroundButton" class="btn secondary-btn" @click="changeBackground">更换背景</button>
+      <button id="historyButton" class="btn secondary-btn" @click="showHistoryModal=true">历史</button>
+      <button id="characterButton" class="btn secondary-btn" @click="showCharacterModal=true">角色</button>
+      <button id="continueButton" class="btn secondary-btn" @click="continueDialog">继续</button>
+      <button id="skipButton" class="btn secondary-btn" @click="skipDialog">跳过</button>
     </div>
 
     <HistoryModal v-if="showHistoryModal" :message-history="messageHistory" @close="showHistoryModal=false"/>
@@ -87,9 +92,20 @@ export default {
       showHistoryModal: false,
       isLoading: false,
       isReplying: false,
+      isMobile: false,
     };
   },
+  mounted() {
+    this.checkMobile();
+    window.addEventListener('resize', this.checkMobile);
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.checkMobile);
+  },
   methods: {
+    checkMobile() {
+      this.isMobile = window.innerWidth <= 768;
+    },
     confirmBackToHome() {
       if (confirm('确定要返回首页吗？当前对话将不会保存。')) {
         this.$router.push('/');
@@ -254,11 +270,10 @@ export default {
 </script>
 
 <style scoped>
-/* 原有样式可以直接移植过来，或者使用CSS模块化 */
 .page {
   position: relative;
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   overflow: hidden;
 }
 
@@ -297,12 +312,17 @@ export default {
 .chat-header {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  padding: 8px 12px;
   background-color: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
 }
 
-/* 角色区域样式 - 居中显示 */
+.chat-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+/* 角色区域样式 - 响应式调整 */
 .character-container {
   position: absolute;
   top: 50%;
@@ -312,12 +332,14 @@ export default {
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 70%;
+  height: 60%;
+  max-height: 500px;
+  transition: all 0.3s ease;
 }
 
 .character-image {
   max-width: 80%;
-  max-height: 80%;
+  max-height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -329,57 +351,68 @@ export default {
   object-fit: contain;
 }
 
+/* 用户输入区域 - 响应式调整 */
 .user-input-container {
   position: fixed;
-  right: 20px;
-  bottom: 120px;
+  right: 15px;
+  bottom: 15px;
   display: flex;
   flex-direction: column;
-  width: 300px;
+  width: 280px;
   gap: 8px;
+  z-index: 100;
+  transition: all 0.3s ease;
 }
 
+/* 对话区域 - 响应式调整 */
 .dialog-container {
   position: fixed;
-  bottom: 20px;
+  bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
-  width: 80%;
+  width: 90%;
   max-width: 600px;
+  max-height: 40vh;
+  overflow-y: auto;
+  padding-bottom: 20px;
+  transition: all 0.3s ease;
 }
 
-@keyframes pulse {
-  0% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.6;
-  }
-}
-
+/* 控制按钮 - 响应式设计 */
 .control-buttons {
+  position: fixed;
+  bottom: 15px;
+  left: 15px;
   display: flex;
   justify-content: center;
   gap: 8px;
   flex-wrap: wrap;
+  max-width: calc(100% - 320px);
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.control-buttons.vertical-layout {
+  flex-direction: row;
+  width: auto;
+  max-width: none;
+  right: 15px;
+  bottom: 100px;
+  align-items: flex-start;
+}
+
+.control-buttons.vertical-layout .btn {
+  width: auto;
 }
 
 .btn {
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 6px 12px;
+  border-radius: 16px;
   border: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   transition: all 0.2s;
-}
-
-.back-btn {
-  background-color: transparent;
-  border: 1px solid #5c5c5c;
-  margin-right: 12px;
+  white-space: nowrap;
 }
 
 .primary-btn {
@@ -398,5 +431,63 @@ export default {
 
 .secondary-btn:hover {
   background-color: white;
+}
+
+/* 小屏幕优化 */
+@media (max-width: 768px) {
+  .character-container {
+    height: 50%;
+    top: 45%;
+  }
+
+  .dialog-container {
+    bottom: 70px;
+    width: 95%;
+    max-height: 35vh;
+  }
+
+  .user-input-container {
+    width: calc(100% - 30px);
+    right: 15px;
+    bottom: 15px;
+  }
+
+  .control-buttons {
+    flex-direction: column;
+    width: auto;
+    max-width: none;
+    right: 15px;
+    bottom: 100px;
+    align-items: flex-end;
+  }
+
+  .control-buttons .btn {
+    width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-header h2 {
+    font-size: 1rem;
+  }
+
+  .character-container {
+    height: 45%;
+    top: 40%;
+  }
+
+  .dialog-container {
+    bottom: 60px;
+    max-height: 30vh;
+  }
+
+  .control-buttons {
+    bottom: 90px;
+  }
+
+  .btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
 }
 </style>
