@@ -296,8 +296,7 @@ export default {
 }
 
 .default-background {
-  background-color: #f0f2f5;
-  background-image: url('../assets/images/default.png');
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .background-overlay {
@@ -346,8 +345,8 @@ export default {
 }
 
 .character-image img {
-  max-width: 100%;
-  max-height: 100%;
+  /*max-width: 100%;
+  max-height: 100%;*/
   object-fit: contain;
 }
 
@@ -436,12 +435,12 @@ export default {
 /* 小屏幕优化 */
 @media (max-width: 768px) {
   .character-container {
-    height: 50%;
-    top: 45%;
+    height: 100%;
+    top: 55%;
   }
 
   .dialog-container {
-    bottom: 70px;
+    bottom: 120px;
     width: 95%;
     max-height: 35vh;
   }
@@ -473,11 +472,11 @@ export default {
 
   .character-container {
     height: 45%;
-    top: 40%;
+    top: 60%;
   }
 
   .dialog-container {
-    bottom: 60px;
+    bottom: 130px;
     max-height: 30vh;
   }
 
