@@ -9,6 +9,7 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -31,11 +32,12 @@ public class ConversationService extends ServiceImpl<ConversationMapper, Convers
         // 使用 MyBatis-Plus 的 lambda 查询获取最新的对话
         QueryWrapper<Conversation> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("assistant_id", assistantId)
-                    .orderByAsc("id")
+                    .orderByDesc("id")
                     .last("LIMIT " + limit);
         List<Conversation> conversations = this.list(queryWrapper);
         List<Message> messages = new ArrayList<>();
-        for (Conversation conversation : conversations) {
+        for (int i = conversations.size() - 1; i >= 0; i--) {
+            Conversation conversation = conversations.get(i);
             Message userMessage = messageService.getById(conversation.getUserMessageId());
             Message assistantMessage = messageService.getById(conversation.getAssistantMessageId());
             if (userMessage != null) {
