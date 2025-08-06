@@ -40,8 +40,11 @@
 
 ## 使用方法
 ### 源码运行
-1. 克隆本项目到本地或下载源代码。
-2. 配置 `user.properties` 文件，设置 硅基流动 API 密钥和其他参数。[获取API key](https://cloud.siliconflow.cn/i/R7ZbeudM)  
+1. 如果你没有安装 Java 和 Gradle，请先安装它们。
+   - [Java 17 下载](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+   - [Gradle 安装指南](https://gradle.org/install/)
+2. 克隆本项目到本地或下载源代码。
+3. 配置 `user.properties` 文件，设置 硅基流动 API 密钥和其他参数。[获取API key](https://cloud.siliconflow.cn/i/R7ZbeudM)  
    如果没有这个文件，请在项目根目录下创建一个名为 `user.properties` 的文件，并添加以下内容：
    ```properties
    # SiliconFlow API Configuration
@@ -64,34 +67,37 @@
    PORT=5000
    HOST=0.0.0.0
    ```
-3. 在项目根目录下打开终端。
-4. 运行以下命令以启动后端：
+4. 在项目根目录下打开终端。
+5. 运行以下命令以启动后端：
    ```bash
    ./gradlew bootRun
    ```
-5. 在frontend目录下打开终端。
-6. 运行以下命令以启动前端：
+6. 在frontend目录下打开终端。
+7. 运行以下命令以启动前端：
    ```bash
    npm install
    npm run dev
    ```
-7. 打开浏览器，访问前端页面。
+8. 打开浏览器，访问前端页面。
+
 
 ### jar 包运行
-1. 在Releases页面下载最新的 `CABM4J.jar` 文件。（不要下载后缀有plain的）
-2. 确保你已经安装了 Java 17 或更高版本。
-3. 在终端中导航到下载的 `CABM4J.jar` 文件所在目录。
-4. 运行以下命令以启动应用程序：
+1. 如果你没有安装 Java，请先安装 Java 17 或更高版本。
+   - [Java 17 下载](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+2. 在Releases页面下载最新的 `CABM4J.jar` 文件。（不要下载后缀有plain的）
+3. 确保你已经安装了 Java 17 或更高版本。
+4. 在终端中导航到下载的 `CABM4J.jar` 文件所在目录。
+5. 运行以下命令以启动应用程序：
     ```bash
     java -jar CABM4J.jar
     ```
-5. 首次运行时，通常无法正常运行，应用会自动创建 `user.properties` 文件。请根据提示编辑该文件，添加你的硅基流动 API 密钥和其他配置。
-6. 应用会自动创建 resources/characters 目录。请至少在此处添加一个角色配置文件（.toml, 参考上面的内容）。
-7. 重新运行应用程序：
+6. 首次运行时，通常无法正常运行，应用会在 **工作目录** 自动创建 `user.properties` 文件。请根据提示编辑该文件，添加你的硅基流动 API 密钥和其他配置。
+7. 应用会在 **工作目录** 自动创建 resources/characters 目录。请至少在此处添加一个角色配置文件（.toml, 参考上面的内容）。
+8. 重新运行应用程序：
     ```bash
     java -jar CABM4J.jar
     ```
-8. 打开浏览器，访问 `http://localhost:8080` 以使用
+9. 打开浏览器，访问 `http://localhost:8080` 以使用
 
 ## 贡献
 
