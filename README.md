@@ -13,6 +13,7 @@
 - 前端的主页面
 - 背景切换
 - 角色选择
+- 对话选项生成
 
 **Java版独特功能：**
 
@@ -62,10 +63,10 @@
    EMBEDDING_API_KEY=your-api-key-here
    EMBEDDING_MODEL=BAAI/bge-m3
    
-   # No necessary
-   DEBUG=False
-   PORT=5000
-   HOST=0.0.0.0
+   # Option API Configuration
+   OPTION_API_URL=https://api.siliconflow.cn/v1/chat/completions
+   OPTION_API_KEY=your-api-key-here
+   OPTION_MODEL=Qwen/Qwen3-8B
    ```
 4. 在项目根目录下打开终端。
 5. 运行以下命令以启动后端：

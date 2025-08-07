@@ -5,6 +5,7 @@ import com.github.shasnow.cabm4j.entity.Character;
 import com.github.shasnow.cabm4j.service.CharacterService;
 import com.github.shasnow.cabm4j.service.ChatService;
 import com.github.shasnow.cabm4j.service.ImageService;
+import com.github.shasnow.cabm4j.service.OptionService;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -25,6 +27,8 @@ public class APIController {
     CharacterService characterService;
     @Resource
     ChatService chatService;
+    @Resource
+    OptionService optionService;
 
 
     @GetMapping(value = "/chat/stream",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -83,5 +87,10 @@ public class APIController {
     @ResponseBody
     public String javaVersion(){
         return "Java "+System.getProperty("java.version");
+    }
+    @GetMapping("/generate-options")
+    @ResponseBody
+    public String[] generateOptions(){
+        return optionService.generateOptions();
     }
 }

@@ -10,7 +10,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="history-modal-overlay">
+  <div class="history-modal-overlay" @click="$emit('close')">
     <div class="history-modal">
       <button class="close-button" @click="$emit('close')">&times;</button>
       <h3>对话历史</h3>

@@ -67,6 +67,10 @@ public class ChatService {
                 .doOnNext(chunk -> {
                     // 跳过 [DONE] 标记（如果是 OpenAI 兼容的流式响应）
                     if ("[DONE]".equals(chunk)) {
+                        String fullResponse = responseBuffer.get().replace("\n", ""); // 去除换行符
+                        int responseMessageId=messageService.saveMessage(new Message("assistant", fullResponse));
+                        conversationService.saveConversation(messageId,responseMessageId, characterService.getCurrentCharacterId());
+                        logger.info("Conversation saved.");
                         return;
                     }
                     // 解析 JSON 并提取 delta 内容
@@ -86,10 +90,7 @@ public class ChatService {
                 })
                 .doOnComplete(() -> {
                     // 流结束时保存完整响应（异步非阻塞）
-                    String fullResponse = responseBuffer.get().replace("\n", ""); // 去除换行符
-                    int responseMessageId=messageService.saveMessage(new Message("assistant", fullResponse));
-                    conversationService.saveConversation(messageId,responseMessageId, characterService.getCurrentCharacterId());
-                    logger.info("Conversation saved.");
+                    logger.info("Chat completion stream completed. Full response: {}", responseBuffer.get().replace("\n", ""));
                 })
                 .doOnError(err -> {
                     // 记录错误并更新消息状态

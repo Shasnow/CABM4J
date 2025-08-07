@@ -1,6 +1,7 @@
 package com.github.shasnow.cabm4j.util;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -8,7 +9,7 @@ import java.util.Properties;
 import java.util.Set;
 
 public class PropertiesManager {
-    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(PropertiesManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(PropertiesManager.class);
     private static Properties properties = new Properties();
     public static void loadProperties(String filePath) {
         Properties prop = new Properties();
@@ -27,7 +28,10 @@ public class PropertiesManager {
                 "IMAGE_MODEL",
                 "EMBEDDING_API_URL",
                 "EMBEDDING_API_KEY",
-                "EMBEDDING_MODEL"
+                "EMBEDDING_MODEL",
+                "OPTION_API_URL",
+                "OPTION_API_KEY",
+                "OPTION_MODEL"
         );
         for (String essentialKey : essentialKeys) {
             if (!prop.containsKey(essentialKey)) {

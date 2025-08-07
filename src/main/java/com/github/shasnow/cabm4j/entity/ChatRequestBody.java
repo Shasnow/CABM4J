@@ -16,7 +16,7 @@ public class ChatRequestBody implements Serializable {
     private List<Message> messages;
     private boolean stream;
     private int maxTokens;
-//    private boolean enableThinking;
+    private boolean enableThinking=false;
 //    private int thinkingBudget;
 //    private float minP;
 //    private String stop;
@@ -52,7 +52,8 @@ public class ChatRequestBody implements Serializable {
                 "stream", stream,
                 "max_tokens", maxTokens,
                 "temperature", temperature,
-                "top_k", topK
+                "top_k", topK,
+                "enable_thinking", enableThinking
         );
     }
 }

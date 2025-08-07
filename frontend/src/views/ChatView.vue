@@ -2,6 +2,7 @@
 import HistoryModal from "@/components/HistoryModal.vue";
 import GalGameDialog from "@/components/GalGameDialog.vue";
 import CharacterSelector from "@/components/CharacterSelector.vue";
+import Options from "@/components/Options.vue";
 </script>
 
 <template>
@@ -32,7 +33,7 @@ import CharacterSelector from "@/components/CharacterSelector.vue";
 
     <!-- 对话区域 -->
     <div class="dialog-container">
-      <GalGameDialog :dialogues="messageList" :name-color="characterColor"></GalGameDialog>
+      <GalGameDialog :dialogues="messageList" :name-color="characterColor" @dialogue-finished="(role)=>{showOptions=role===currentCharacter.name}"></GalGameDialog>
     </div>
 
     <!-- 用户输入区域 -->
@@ -54,22 +55,22 @@ import CharacterSelector from "@/components/CharacterSelector.vue";
       <button id="backgroundButton" class="btn secondary-btn" @click="changeBackground">更换背景</button>
       <button id="historyButton" class="btn secondary-btn" @click="showHistoryModal=true">历史</button>
       <button id="characterButton" class="btn secondary-btn" @click="showCharacterModal=true">角色</button>
-      <button id="continueButton" class="btn secondary-btn" @click="continueDialog">继续</button>
-      <button id="skipButton" class="btn secondary-btn" @click="skipDialog">跳过</button>
     </div>
 
     <HistoryModal v-if="showHistoryModal" :message-history="messageHistory" @close="showHistoryModal=false"/>
     <CharacterSelector v-if="showCharacterModal" :characters="availableCharacters" @close="showCharacterModal=false"
                        @character-selected="changeCharacter"/>
+    <Options v-if="showOptions" :options-array="options" @select="optionSelected" class="options-component"></Options>
   </div>
 </template>
 
 <script>
 import axios from "axios";
-import {ElLoading, ElMessage} from "element-plus";
+import {ElLoading, ElMessage, ElNotification} from "element-plus";
 import {ref} from "vue";
 
 const messageHistory = ref([]);
+const options = ref([]);
 export default {
   name: 'ChatPage',
   props: {
@@ -90,6 +91,7 @@ export default {
       messageInput: '',
       showCharacterModal: false,
       showHistoryModal: false,
+      showOptions: false,
       isLoading: false,
       isReplying: false,
       isMobile: false,
@@ -115,13 +117,14 @@ export default {
       const message = this.messageInput.trim();
       if (message === '') return;
       if (this.isReplying) return; // 如果正在回复，则不允许发送新消息
+      this.showOptions = false;
       this.isReplying = true;
       this.messageInput = '';
       this.updateCurrentMessage('user', message);
       this.addToHistory('user', message);
       let sentence = "";
       const eventSource = new EventSource(`/api/chat/stream?message=${encodeURIComponent(message)}`);
-      eventSource.onmessage = (event) => {
+      eventSource.onmessage = async (event) => {
         if (event.data === '[DONE]') {
           eventSource.close();
           if (sentence !== '') {
@@ -130,6 +133,11 @@ export default {
             this.addToHistory('assistant', sentence);
           }
           this.isReplying = false;
+          ElNotification.info("正在生成选项...");
+          const response = await axios.get('api/generate-options');
+          if (!response.data) ElMessage.error("选项生成失败");
+          options.value = response.data;
+          ElNotification.success("选项生成成功");
           return;
         }
         const string = JSON.parse(event.data)["choices"][0]["delta"]["content"].trim();
@@ -253,7 +261,7 @@ export default {
         this.characterColor = this.currentCharacter.nameColor || '#409eff'; // 使用角色颜色或默认颜色
       } else if (role === 'system') {
         this.characterName = '系统';
-        this.characterColor = '#00550d'; // 系统消息颜色
+        this.characterColor = '#009513'; // 系统消息颜色
       }
       this.messageList.push({role: this.characterName, message});
     },
@@ -261,6 +269,11 @@ export default {
       const timestamp = new Date().toLocaleTimeString();
       messageHistory.value.push({role: this.characterName, message, timestamp});
     },
+    optionSelected(text) {
+      this.messageInput = text;
+      options.value=[]
+      this.sendMessage();
+    }
   },
   async created() {
     await this.loadBackground();
@@ -430,6 +443,14 @@ export default {
 
 .secondary-btn:hover {
   background-color: white;
+}
+
+.options-component {
+  position: fixed;
+  bottom: 400px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
 }
 
 /* 小屏幕优化 */

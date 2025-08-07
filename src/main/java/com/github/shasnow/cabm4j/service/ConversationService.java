@@ -6,6 +6,7 @@ import com.github.shasnow.cabm4j.entity.Conversation;
 import com.github.shasnow.cabm4j.entity.Message;
 import com.github.shasnow.cabm4j.mapper.ConversationMapper;
 import jakarta.annotation.Resource;
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ import java.util.List;
 
 @Service
 public class ConversationService extends ServiceImpl<ConversationMapper, Conversation> {
+    @Getter
+    private Conversation conversationCache;
     @Resource
     MessageService messageService;
 
@@ -26,10 +29,10 @@ public class ConversationService extends ServiceImpl<ConversationMapper, Convers
         conversation.setUserMessageId(userMessageId);
         conversation.setAssistantMessageId(assistantMessageId);
         conversation.setAssistantId(assistantId);
+        conversationCache = conversation;
         this.save(conversation);
     }
     public List<Message> getLatestConversationsMessages(int limit, String assistantId) {
-        // 使用 MyBatis-Plus 的 lambda 查询获取最新的对话
         QueryWrapper<Conversation> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("assistant_id", assistantId)
                     .orderByDesc("id")
@@ -55,6 +58,18 @@ public class ConversationService extends ServiceImpl<ConversationMapper, Convers
         StringBuilder sb = new StringBuilder();
         for (Message message : messages) {
             sb.append(message.toSimpleString()).append("\n");
+        }
+        return sb.toString();
+    }
+    public String getConversationString(Conversation conversation){
+        Message userMessage = messageService.getById(conversation.getUserMessageId());
+        Message assistantMessage = messageService.getById(conversation.getAssistantMessageId());
+        StringBuilder sb = new StringBuilder();
+        if(userMessage!=null){
+            sb.append(userMessage.toSimpleString()).append("\n");
+        }
+        if(assistantMessage!=null){
+            sb.append(assistantMessage.toSimpleString()).append("\n");
         }
         return sb.toString();
     }

@@ -3,7 +3,6 @@ package com.github.shasnow.cabm4j.service;
 import com.github.shasnow.cabm4j.util.ConfigManager;
 import com.github.shasnow.cabm4j.util.DataGenerator;
 import com.github.shasnow.cabm4j.util.PropertiesManager;
-import lombok.Getter;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -12,8 +11,6 @@ import java.util.Map;
 public class ConfigService {
     private final boolean initialized = false;
     private final boolean configLoaded = false;
-    @Getter
-    private String currentCharacterId = null;
 
     public ConfigService() {
         DataGenerator.dataGen();

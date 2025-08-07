@@ -15,6 +15,10 @@
     <div v-if="showContinuePrompt && isTypingComplete" class="continue-prompt">
       ▽
     </div>
+    <div class="control-buttons">
+      <el-button type="info" round size="small" id="continueButton" class="control-button" @click="handleClick">继续</el-button>
+      <el-button type="info" round size="small" id="skipButton" class="control-button" @click="handleClick">跳过</el-button>
+    </div>
   </div>
 </template>
 
@@ -32,7 +36,7 @@ export default {
       type: String,
       default: '#fff'
     },
-    // 角色颜色配置（可选，格式：{ "角色名": "#颜色值" }）
+    // 角色颜色配置
     nameColor: {
       type:String
     },
@@ -144,6 +148,7 @@ export default {
         this.isTypingComplete = true
         if (this.currentDialogueIndex >= this.dialogues.length - 1) {
           this.allShown = true
+          this.$emit('dialogue-finished',this.currentDialogue.role)
         }
         return
       }
@@ -191,7 +196,6 @@ export default {
         // 如果打完了且还有下一条，切换到下一条
         this.currentDialogueIndex++
       }
-      this.$emit('dialogue-finish', this.currentDialogueIndex)
     },
 
     // 处理Ctrl键按下
@@ -279,6 +283,11 @@ export default {
   font-size: 16px;
   color: rgba(255, 255, 255, 0.7);
   animation: bounce 1.5s infinite;
+}
+
+.control-buttons {
+  display: flex;
+  justify-content: right;
 }
 
 @keyframes bounce {
