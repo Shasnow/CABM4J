@@ -85,7 +85,7 @@
 ### jar 包运行
 1. 如果你没有安装 Java，请先安装 Java 17 或更高版本。
    - [Java 17 下载](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
-2. 在Releases页面下载最新的 `CABM4J.jar` 文件。（不要下载后缀有plain的）
+2. 在Releases页面下载最新的 `CABM4J.jar` 文件。
 3. 确保你已经安装了 Java 17 或更高版本。
 4. 在终端中导航到下载的 `CABM4J.jar` 文件所在目录。
 5. 运行以下命令以启动应用程序：
@@ -99,6 +99,17 @@
     java -jar CABM4J.jar
     ```
 9. 打开浏览器，访问 `http://localhost:8080` 以使用
+
+### 一键包运行
+如果你不会使用上面两种方式，可以下载一键包，解压后直接运行。
+1. 在Releases页面下载最新的一键包文件。如 `CABM4J-windows-x64-with-jre.zip`。
+   `with-jre` 表明它包含了Java运行环境，适合没有安装Java的用户。
+2. 解压缩下载的文件。
+3. 在解压后的目录中，运行 `start.bat` 或 `start.sh` 文件。
+4. 首次运行时，通常无法正常运行，应用会在 **工作目录** 自动创建 `user.properties` 文件。请根据提示编辑该文件，添加你的硅基流动 API 密钥和其他配置。
+5. 应用会在 **工作目录** 自动创建 resources/characters 目录。请至少在此处添加一个角色配置文件（.toml, 参考上面的内容）。
+6. 重新运行 `start.bat` 或 `start.sh` 文件。
+7. 打开浏览器，访问 `http://localhost:8080` 以使用，通常会自动打开。
 
 ## 贡献
 
