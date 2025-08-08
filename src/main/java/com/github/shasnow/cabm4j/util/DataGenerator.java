@@ -51,6 +51,11 @@ public class DataGenerator {
                 # Replace with your actual API key
                 EMBEDDING_MODEL=BAAI/bge-m3
                 
+                # Option API Configuration
+                OPTION_API_URL=https://api.siliconflow.cn/v1/chat/completions
+                OPTION_API_KEY=your_api_key_here
+                OPTION_MODEL=deepseek-ai/DeepSeek-R1-0528-Qwen3-8B
+                
                 # Other configurations
                 auto-open-browser=true
                 """;
