@@ -8,7 +8,7 @@ from pathlib import Path
 
 def prepare_cross_platform_release():
     # 定义变量
-    os.remove(Path('./build/libs').glob('*plain.jar'))
+    os.remove(list(Path('./build/libs').glob('*plain.jar'))[0])
     jar_files = list(Path('./build/libs').glob('*.jar'))
     if not jar_files:
         raise FileNotFoundError("No JAR file found in ./build/libs directory")
