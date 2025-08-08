@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-release:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: write
 
@@ -17,7 +17,7 @@ jobs:
 
       - name: Clean previous builds
         run: |
-          Remove-Item -Path ./frontend/dist, ./build, ./src/main/resources/templates/index.html, ./src/main/resources/static -Recurse -Force -ErrorAction SilentlyContinue
+          rm -rf ./frontend/dist ./build ./src/main/resources/templates/index.html ./src/main/resources/static
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -36,39 +36,54 @@ jobs:
 
       - name: Move frontend build files
         run: |
-          # 确保目标目录存在
-          New-Item -ItemType Directory -Force -Path src/main/resources/templates, src/main/resources/static | Out-Null
+          mkdir -p src/main/resources/templates src/main/resources/static
+          mv frontend/dist/index.html src/main/resources/templates/
+          rsync -a --exclude="index.html" frontend/dist/ src/main/resources/static/
 
-          # 移动index.html
-          Move-Item -Path (Join-Path -Path "frontend" -ChildPath "dist/index.html") -Destination "src/main/resources/templates/"
-
-          # 移动其他文件（递归）
-          Get-ChildItem -Path "frontend/dist" -Exclude "index.html" | Copy-Item -Destination "src/main/resources/static/" -Recurse -Force
-
-      - name: Set up JDK 17
+      - name: Set up JDK 17 (for Gradle build)
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Build with Gradle
-        run: ./gradlew.bat build
+        run: ./gradlew build
 
       - name: Verify build artifacts
         run: |
-          if (-not (Test-Path -Path "./src/main/resources/templates/index.html")) { throw "index.html not found!" }
-          if (-not (Test-Path -Path "./src/main/resources/static/assets")) { throw "Static assets missing!" }
+          [ -f "./src/main/resources/templates/index.html" ] || { echo "index.html not found!"; exit 1; }
+          [ -d "./src/main/resources/static/assets" ] || { echo "Static assets missing!"; exit 1; }
 
-          $jarFile = Get-ChildItem -Path "./build/libs/*.jar" | Select-Object -First 1
-          if (-not $jarFile) { throw "No JAR file generated!" }
-          if ($jarFile.Length -eq 0) { throw "JAR file is empty!" }
-          Write-Output "Built JAR: $($jarFile.Name)"
+          jar_file=$(ls ./build/libs/*.jar | head -n 1)
+          [ -f "$jar_file" ] || { echo "No JAR file generated!"; exit 1; }
+          [ -s "$jar_file" ] || { echo "JAR file is empty!"; exit 1; }
+          echo "Built JAR: $(basename $jar_file)"
+          echo "JAR_FILE=$(basename $jar_file)" >> $GITHUB_ENV
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install requests
+
+      - name: Prepare cross-platform release packages
+        run: |
+          python built.py
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/libs/*.jar
+          files: |
+            build/libs/*.jar
+            release-package-windows.zip
+            release-package-linux.tar.gz
+            release-package-macos.tar.gz
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
